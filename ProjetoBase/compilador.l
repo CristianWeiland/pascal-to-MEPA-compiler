@@ -38,11 +38,19 @@ program { simbolo  = simb_program;
           return PROGRAM;
  }
 
+label
+type
+array
+of
+
 var      { simbolo = simb_var;  
           strncpy (token, yytext, TAM_TOKEN);
           IMPRIME("var  ");
           return VAR;
  }
+
+procedure
+function
 
 begin { simbolo = simb_begin;
           strncpy (token, yytext, TAM_TOKEN);
@@ -55,6 +63,17 @@ end { simbolo = simb_end;
           IMPRIME("end  ");
           return T_END;
  }
+
+goto
+if
+then
+else
+while
+do
+or
+div
+and
+not
 
 := { simbolo = simb_atribuicao;  
           strncpy (token, yytext, TAM_TOKEN);

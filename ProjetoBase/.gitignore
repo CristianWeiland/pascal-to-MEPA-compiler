@@ -1,0 +1,8 @@
+*.swp
+*.bak
+core
+*.o
+compiladores
+compilador
+teste
+a.out
