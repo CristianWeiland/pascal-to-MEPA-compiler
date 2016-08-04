@@ -1,0 +1,4 @@
+*.swp
+compilador
+compilador.tab.*
+lex.yy.c

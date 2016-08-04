@@ -21,7 +21,8 @@ typedef enum simbolos {
 // A partir daqui são os nossos
   simb_label, simb_type, simb_array, simb_of, simb_procedure,
   simb_function, simb_goto, simb_if, simb_then, simb_else,
-  simb_while, simb_do, simb_or, simb_div, simb_and, simb_not
+  simb_while, simb_do, simb_or, simb_div, simb_and, simb_not,
+  simb_integer
 } simbolos;
 
 

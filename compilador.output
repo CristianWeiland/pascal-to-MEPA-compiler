@@ -1,6 +1,23 @@
 Terminals unused in grammar
 
    ATRIBUICAO
+   LABEL
+   TYPE
+   ARRAY
+   OF
+   PROCEDURE
+   FUNCTION
+   GOTO
+   IF
+   THEN
+   ELSE
+   WHILE
+   DO
+   OR
+   DIV
+   AND
+   NOT
+   INTEGER
 
 
 Grammar
@@ -60,43 +77,60 @@ T_END (266) 19
 VAR (267) 7
 IDENT (268) 2 14 15 16 17 18
 ATRIBUICAO (269)
+LABEL (270)
+TYPE (271)
+ARRAY (272)
+OF (273)
+PROCEDURE (274)
+FUNCTION (275)
+GOTO (276)
+IF (277)
+THEN (278)
+ELSE (279)
+WHILE (280)
+DO (281)
+OR (282)
+DIV (283)
+AND (284)
+NOT (285)
+INTEGER (286)
 
 
 Nonterminals, with rules where they appear
 
-$accept (15)
+$accept (32)
     on left: 0
-programa (16)
+programa (33)
     on left: 2, on right: 0
-$@1 (17)
+$@1 (34)
     on left: 1, on right: 2
-bloco (18)
+bloco (35)
     on left: 4, on right: 2
-$@2 (19)
+$@2 (36)
     on left: 3, on right: 4
-parte_declara_vars (20)
+parte_declara_vars (37)
     on left: 5, on right: 4
-var (21)
+var (38)
     on left: 7 8, on right: 5
-$@3 (22)
+$@3 (39)
     on left: 6, on right: 7
-declara_vars (23)
+declara_vars (40)
     on left: 9 10, on right: 7 9
-declara_var (24)
+declara_var (41)
     on left: 13, on right: 9 10
-$@4 (25)
+$@4 (42)
     on left: 11, on right: 13
-$@5 (26)
+$@5 (43)
     on left: 12, on right: 13
-tipo (27)
+tipo (44)
     on left: 14, on right: 13
-lista_id_var (28)
+lista_id_var (45)
     on left: 15 16, on right: 13 15
-lista_idents (29)
+lista_idents (46)
     on left: 17 18, on right: 2 17
-comando_composto (30)
+comando_composto (47)
     on left: 19, on right: 4
-comandos (31)
+comandos (48)
     on left: 20, on right: 19
 
 

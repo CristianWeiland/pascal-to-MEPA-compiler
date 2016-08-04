@@ -43,28 +43,28 @@ program { simbolo = simb_program;
 label {
     simbolo = simb_label;
     strncpy (token, yytext, TAM_TOKEN);
-    IMPRIME("label ");
+    IMPRIME(" label ");
     return LABEL;
 }
 
 type {
     simbolo = simb_type;
     strncpy (token, yytext, TAM_TOKEN);
-    IMPRIME("type ");
+    IMPRIME(" type ");
     return TYPE;
 }
 
 array {
     simbolo = simb_array;
     strncpy (token, yytext, TAM_TOKEN);
-    IMPRIME("array ");
+    IMPRIME(" array ");
     return ARRAY;
 }
 
 of {
     simbolo = simb_of;
     strncpy (token, yytext, TAM_TOKEN);
-    IMPRIME("of ");
+    IMPRIME(" of ");
     return OF;
 }
 
@@ -111,71 +111,78 @@ end { simbolo = simb_end;
 goto {
     simbolo = simb_goto;
     strncpy (token, yytext, TAM_TOKEN);
-    IMPRIME("goto ");
+    IMPRIME(" goto ");
     return GOTO;
 }
 
 if {
     simbolo = simb_if;
     strncpy (token, yytext, TAM_TOKEN);
-    IMPRIME("if ");
+    IMPRIME(" if ");
     return IF;
 }
 
 then {
     simbolo = simb_then;
     strncpy (token, yytext, TAM_TOKEN);
-    IMPRIME("then ");
+    IMPRIME(" then ");
     return THEN;
 }
 
 else {
     simbolo = simb_else;
     strncpy (token, yytext, TAM_TOKEN);
-    IMPRIME("else ");
+    IMPRIME(" else ");
     return ELSE;
 }
 
 while {
     simbolo = simb_while;
     strncpy (token, yytext, TAM_TOKEN);
-    IMPRIME("while ");
+    IMPRIME(" while ");
     return WHILE;
 }
 
 do {
     simbolo = simb_do;
     strncpy (token, yytext, TAM_TOKEN);
-    IMPRIME("do ");
+    IMPRIME(" do ");
     return DO;
 }
 
 or {
     simbolo = simb_or;
     strncpy (token, yytext, TAM_TOKEN);
-    IMPRIME("or ");
+    IMPRIME(" or ");
     return OR;
 }
 
 div {
     simbolo = simb_div;
     strncpy (token, yytext, TAM_TOKEN);
-    IMPRIME("div ");
+    IMPRIME(" div ");
     return DIV;
 }
 
 and {
     simbolo = simb_and;
     strncpy (token, yytext, TAM_TOKEN);
-    IMPRIME("and ");
+    IMPRIME(" and ");
     return AND;
 }
 
 not {
     simbolo = simb_not;
     strncpy (token, yytext, TAM_TOKEN);
-    IMPRIME("not ");
+    IMPRIME(" not ");
     return NOT;
+}
+
+integer {
+    simbolo = simb_integer;
+    strncpy (token, yytext, TAM_TOKEN);
+    IMPRIME(" integer ");
+    return INTEGER;
 }
 
 
@@ -232,3 +239,8 @@ not {
 
 %%
 
+main(int argc, char **argv) {
+    yyin = fopen(argv[1], "r");
+    while(yylex());
+    fclose(yyin);
+}

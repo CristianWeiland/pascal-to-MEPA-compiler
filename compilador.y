@@ -17,6 +17,10 @@ int num_vars;
 %token PROGRAM ABRE_PARENTESES FECHA_PARENTESES 
 %token VIRGULA PONTO_E_VIRGULA DOIS_PONTOS PONTO
 %token T_BEGIN T_END VAR IDENT ATRIBUICAO
+// Adicionados por nois
+%token LABEL TYPE ARRAY OF PROCEDURE FUNCTION
+%token GOTO IF THEN ELSE WHILE DO OR DIV AND NOT
+%token INTEGER
 
 %%
 
@@ -81,7 +85,7 @@ comandos:
 
 
 %%
-
+/*
 main (int argc, char** argv) {
    FILE* fp;
    extern FILE* yyin;
@@ -101,10 +105,11 @@ main (int argc, char** argv) {
 /* -------------------------------------------------------------------
  *  Inicia a Tabela de Símbolos
  * ------------------------------------------------------------------- */
-
+/*
    yyin=fp;
    yyparse();
 
    return 0;
 }
 
+*/
