@@ -79,6 +79,12 @@ void debug(ST st) {
     puts("}");
 }
 
+Cat initSimpleVar(int offset) {
+    Cat st = (Cat) malloc(sizeof(union Cat));
+    st->simpleVar->offset = offset;
+    return st;
+}
+
 int main() {
     ST st = initST();
     union Cat c0, c1, c2, c3, c4;

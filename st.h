@@ -15,5 +15,6 @@ int searchST(ST st, const char *symb);
 int insertST(ST st, const char* symb, int lexlev, int cat, Cat value);
 void deleteST(ST st);
 ST initST();
+Cat initSimpleVar(int offset);
 #endif
 

@@ -9,12 +9,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "compilador.h"
+#include "sl.h"
 
-int num_vars;
+int deslocamento, lexLevel = 0;
+SL symbolTable = initST();
 
 %}
 
-%token PROGRAM ABRE_PARENTESES FECHA_PARENTESES 
+%token PROGRAM ABRE_PARENTESES FECHA_PARENTESES
 %token VIRGULA PONTO_E_VIRGULA DOIS_PONTOS PONTO
 %token T_BEGIN T_END VAR IDENT ATRIBUICAO
 // Adicionados por nois
@@ -24,42 +26,44 @@ int num_vars;
 
 %%
 
-programa    :{ 
-             geraCodigo (NULL, "INPP"); 
+programa    :{
+             geraCodigo (NULL, "INPP");
              }
-             PROGRAM IDENT 
+             PROGRAM IDENT
              ABRE_PARENTESES lista_idents FECHA_PARENTESES PONTO_E_VIRGULA
              bloco PONTO {
-             geraCodigo (NULL, "PARA"); 
+             geraCodigo (NULL, "PARA");
              }
 ;
 
-bloco       : 
+bloco       :
               parte_declara_vars
-              { 
+              {
               }
 
-              comando_composto 
+              comando_composto
               ;
 
 
 
 
-parte_declara_vars:  var 
-;
+parte_declara_vars:  var
 
-
-var         : { } VAR declara_vars
+var         : { deslocamento = 0; } VAR declara_vars {
+                    char amem[10];
+                    sprintf(amem, "AMEM %d", deslocamento);
+                    geraCodigo(NULL, amem);
+                }
             |
 ;
 
-declara_vars: declara_vars declara_var 
-            | declara_var 
+declara_vars: declara_vars declara_var
+            | declara_var
 ;
 
-declara_var : { } 
-              lista_id_var DOIS_PONTOS 
-              tipo 
+declara_var : { }
+              lista_id_var DOIS_PONTOS
+              tipo
               { /* AMEM */
               }
               PONTO_E_VIRGULA
@@ -68,19 +72,28 @@ declara_var : { }
 tipo        : IDENT
 ;
 
-lista_id_var: lista_id_var VIRGULA IDENT 
-              { /* insere última vars na tabela de símbolos */ }
-            | IDENT { /* insere vars na tabela de símbolos */}
+lista_id_var: lista_id_var VIRGULA IDENT {
+                //token ja está definido ?
+                Cat cat = initSimpleVar(deslocamento);
+                insertST(symbolTable, token, lexLevel, SIMPLEVAR, cat);
+                ++deslocamento;
+            }
+            | IDENT {
+                //token ja está definido ?
+                Cat cat = initSimpleVar(deslocamento);
+                insertST(symbolTable, token, lexLevel, SIMPLEVAR, cat);
+                ++deslocamento;
+            }
 ;
 
-lista_idents: lista_idents VIRGULA IDENT  
+lista_idents: lista_idents VIRGULA IDENT
             | IDENT
 ;
 
 
-comando_composto: T_BEGIN comandos T_END 
+comando_composto: T_BEGIN comandos T_END
 
-comandos:    
+comandos:
 ;
 
 
