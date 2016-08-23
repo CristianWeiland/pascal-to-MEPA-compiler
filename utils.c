@@ -4,6 +4,9 @@
 #include "st.h"
 
 #define MAX_SYMB_LEN 10
+#define LABEL_LENGTH 6
+
+int label = -1;
 
 struct SimpleVar {
     int offset;
@@ -24,7 +27,6 @@ struct Element { // Sujeito a mudança
     int lexLevel;
     int cat;
     Cat value;
-
 };
 
 
@@ -83,6 +85,13 @@ Cat initSimpleVar(int offset) {
     Cat st = (Cat) malloc(sizeof(union Cat));
     st->simpleVar->offset = offset;
     return st;
+}
+
+char* next_label() {
+    char* str;
+    str = (char *) malloc(sizeof(char) * LABEL_LENGTH);
+    sprintf(str, "r%04d", ++label);
+    return str;
 }
 
 int main() {

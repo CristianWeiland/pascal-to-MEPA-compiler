@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "compilador.h"
-#include "sl.h"
+#include "utils.h"
 
 int deslocamento, lexLevel = 0;
 SL symbolTable = initST();
