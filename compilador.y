@@ -91,11 +91,30 @@ lista_idents: lista_idents VIRGULA IDENT
 ;
 
 
-comando_composto: T_BEGIN comandos T_END
+comando_composto: T_BEGIN comandos T_END;
 
-comandos:
-;
+comandos: comandos PONTO_E_VIRGULA comando | comando;
 
+comando: rotulo comando_sem_rotulo;
+
+/* Ou 'numero DOIS_PONTOS' ou nada. Suponho que, se nao tem nada, eu deixo em branco soh. */
+rotulo: numero DOIS_PONTOS | ;
+
+comando_sem_rotulo: atribuicao;
+
+atribuicao: variavel DOIS_PONTOS IGUAL expressao {
+                                            char armz[13]; // Da ateh 3 digitos de inteiros
+                                            sprintf(armz, "ARMZ %d,%d", lexLevel, deslocamento);
+                                            geraCodigo(NULL, armz);
+                                            // Verifica se os tipos sao iguais. NAO FOI FEITO AINDA.
+                                        }
+
+variavel: IDENT {
+            if(searchST(symbolTable, token) == -1) {
+                printf("Symbol %s not found. Aborting...\n", token);
+                exit(1);
+            }
+        }
 
 %%
 /*
