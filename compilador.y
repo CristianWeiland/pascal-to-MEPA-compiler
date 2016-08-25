@@ -12,8 +12,9 @@
 #include "utils.h"
 
 int deslocamento, lexLevel = 0;
-SL symbolTable = initST();
-Stack labels = initStack();
+// Obs: Nao da pra inicializar coisas aqui!
+ST symbolTable;
+Stack labels;
 
 %}
 
@@ -23,11 +24,14 @@ Stack labels = initStack();
 // Adicionados por nois
 %token LABEL TYPE ARRAY OF PROCEDURE FUNCTION
 %token GOTO IF THEN ELSE WHILE DO OR DIV AND NOT
-%token INTEGER
+%token INTEGER MAIS MENOS ASTERISCO BARRA OU E
+%token IGUAL NUMERO
 
 %%
 
 programa    :{
+             symbolTable = initST();
+             labels = initStack();
              geraCodigo (NULL, "INPP");
              }
              PROGRAM IDENT
@@ -99,16 +103,16 @@ comandos: comandos PONTO_E_VIRGULA comando | comando;
 comando: rotulo comando_sem_rotulo;
 
 /* Ou 'numero DOIS_PONTOS' ou nada. Suponho que, se nao tem nada, eu deixo em branco soh. */
-rotulo: numero DOIS_PONTOS | ;
+rotulo: NUMERO DOIS_PONTOS | ;
 
 comando_sem_rotulo: atribuicao | comando_repetitivo;
 
-atribuicao: variavel DOIS_PONTOS IGUAL expressao {
-                                            char armz[13]; // Da ateh 3 digitos de inteiros
-                                            sprintf(armz, "ARMZ %d,%d", lexLevel, deslocamento);
-                                            geraCodigo(NULL, armz);
-                                            // Verifica se os tipos sao iguais. NAO FOI FEITO AINDA.
-                                        }
+atribuicao: variavel DOIS_PONTOS IGUAL expr {
+        char armz[13]; // Da ateh 3 digitos de inteiros
+        sprintf(armz, "ARMZ %d,%d", lexLevel, deslocamento);
+        geraCodigo(NULL, armz);
+        // Verifica se os tipos sao iguais. NAO FOI FEITO AINDA.
+    }
 
 variavel: IDENT {
             if(searchST(symbolTable, token) == -1) {
@@ -117,22 +121,38 @@ variavel: IDENT {
             }
         }
 
+expr: expr MAIS t {
+    geraCodigo(NULL, "SOMA");
+} | expr OU t {
+    geraCodigo(NULL, "CONJ");
+} | t
+t: t ASTERISCO f {
+    geraCodigo(NULL, "MULT");
+} | t E f {
+    geraCodigo(NULL, "DISJ");
+} | f
+f: IDENT {
+    int i = searchST(symbolTable, token);
+// TA INCOMPLETO
+}
+
 /* Implementa while */
 comando_repetitivo: WHILE {
         char *label_in = nextLabel();
         push(labels, label_in);
-        GeraCodigo(label_in, "NADA");
+        geraCodigo(label_in, "NADA");
     } expr DO {
         char *label_out = nextLabel();
         push(labels, label_out);
-        GeraCodigo(NULL, strcat("DSVF ", label_out));
-
+        geraCodigo(NULL, strcat("DSVF ", label_out));
     }
     comando_sem_rotulo {
-        label_out = (char *) pop(labels);
-        label_in = (char *) pop(labels);
+        char *label_out = (char *) pop(labels);
+        char *label_in = (char *) pop(labels);
         geraCodigo(NULL, strcat("DSVS ", label_in));
         geraCodigo(label_out, "NADA");
+        free(label_out);
+        free(label_in);
     };
 
 %%

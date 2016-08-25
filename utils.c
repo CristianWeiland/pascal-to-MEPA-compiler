@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "st.h"
+#include "utils.h"
 
 #define STACK_SIZE 100
 #define MAX_SYMB_LEN 10
@@ -99,7 +99,7 @@ struct Stack {
 };
 
 Stack initStack() {
-    Stack st = (ST) malloc(sizeof(struct Stack));
+    Stack st = (Stack) malloc(sizeof(struct Stack));
     st->elems = (void**) malloc(STACK_SIZE* sizeof(void*));
     st->head = -1;
     return st;
@@ -123,7 +123,7 @@ void* pop(Stack stack) {
 void deleteStack(Stack stack) {
     free(stack->elems);
 }
-
+/*
 int main() {
     ST st = initST();
     union Cat c0, c1, c2, c3, c4;
@@ -139,3 +139,4 @@ int main() {
     debug(st);
     return 0;
 }
+*/

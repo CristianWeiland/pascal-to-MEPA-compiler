@@ -1,8 +1,8 @@
 %{
 
 
-#include<stdio.h>
-#include<string.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "compilador.h"
 #include "compilador.tab.h"
@@ -229,6 +229,42 @@ integer {
           IMPRIME(" fecha_parenteses ");
           return FECHA_PARENTESES;
  }
+
+\+  { simbolo = simb_mais;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" mais ");
+          return MAIS;
+ }
+
+\-  { simbolo = simb_menos;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" menos ");
+          return MENOS;
+ }
+
+\*  { simbolo = simb_asterisco;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" asterisco ");
+          return ASTERISCO;
+ }
+
+\/  { simbolo = simb_barra;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" BARRA ");
+          return BARRA;
+ }
+
+\=  { simbolo = simb_igual;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" igual ");
+          return IGUAL;
+ }
+
+{numero} { simbolo = simb_numero;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" numero  ");
+          return NUMERO;
+        }
 
 {ident} { simbolo = simb_identificador;
           strncpy (token, yytext, TAM_TOKEN);
