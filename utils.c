@@ -3,6 +3,7 @@
 #include <string.h>
 #include "st.h"
 
+#define STACK_SIZE 100
 #define MAX_SYMB_LEN 10
 #define LABEL_LENGTH 6
 
@@ -21,7 +22,6 @@ union Cat{
     */
 };
 
-
 struct Element { // Sujeito a mudança
     char symbol[MAX_SYMB_LEN + 1];
     int lexLevel;
@@ -29,12 +29,10 @@ struct Element { // Sujeito a mudança
     Cat value;
 };
 
-
 struct ST {
     int head;
     Element elems[100];
 };
-
 
 ST initST() {
     ST st = (ST) malloc(sizeof(struct ST));
@@ -87,11 +85,43 @@ Cat initSimpleVar(int offset) {
     return st;
 }
 
-char* next_label() {
+char* nextLabel() {
     char* str;
     str = (char *) malloc(sizeof(char) * LABEL_LENGTH);
     sprintf(str, "r%04d", ++label);
     return str;
+}
+
+/* Stack */
+struct Stack {
+    int head;
+    void **elems;
+};
+
+Stack initStack() {
+    Stack st = (ST) malloc(sizeof(struct Stack));
+    st->elems = (void**) malloc(STACK_SIZE* sizeof(void*));
+    st->head = -1;
+    return st;
+}
+
+void push(Stack stack, void *elem) {
+    ++(stack->head);
+    if(stack->head == STACK_SIZE) {
+        puts("Stack is full. Aborting...");
+        exit(1);
+    }
+    stack->elems[stack->head] = elem;
+    return ;
+}
+
+void* pop(Stack stack) {
+    --(stack->head);
+    return stack->elems[stack->head+1];
+}
+
+void deleteStack(Stack stack) {
+    free(stack->elems);
 }
 
 int main() {
@@ -105,7 +135,7 @@ int main() {
     debug(st);
     insertST(st, "d", 0, SIMPLEVAR, &c3);
     debug(st);
-    insertST(st, "mais de 9000 simcolos", 0, SIMPLEVAR, &c4);
+    insertST(st, "mais de 9000 simbolos", 0, SIMPLEVAR, &c4);
     debug(st);
     return 0;
 }

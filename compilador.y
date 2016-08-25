@@ -13,6 +13,7 @@
 
 int deslocamento, lexLevel = 0;
 SL symbolTable = initST();
+Stack labels = initStack();
 
 %}
 
@@ -100,7 +101,7 @@ comando: rotulo comando_sem_rotulo;
 /* Ou 'numero DOIS_PONTOS' ou nada. Suponho que, se nao tem nada, eu deixo em branco soh. */
 rotulo: numero DOIS_PONTOS | ;
 
-comando_sem_rotulo: atribuicao;
+comando_sem_rotulo: atribuicao | comando_repetitivo;
 
 atribuicao: variavel DOIS_PONTOS IGUAL expressao {
                                             char armz[13]; // Da ateh 3 digitos de inteiros
@@ -115,6 +116,24 @@ variavel: IDENT {
                 exit(1);
             }
         }
+
+/* Implementa while */
+comando_repetitivo: WHILE {
+        char *label_in = nextLabel();
+        push(labels, label_in);
+        GeraCodigo(label_in, "NADA");
+    } expr DO {
+        char *label_out = nextLabel();
+        push(labels, label_out);
+        GeraCodigo(NULL, strcat("DSVF ", label_out));
+
+    }
+    comando_sem_rotulo {
+        label_out = (char *) pop(labels);
+        label_in = (char *) pop(labels);
+        geraCodigo(NULL, strcat("DSVS ", label_in));
+        geraCodigo(label_out, "NADA");
+    };
 
 %%
 /*
