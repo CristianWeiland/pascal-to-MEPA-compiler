@@ -55,7 +55,7 @@ void debug(ST st) {
 
 Cat initSimpleVar(int offset) {
     Cat st = (Cat) malloc(sizeof(union Cat));
-    st->simpleVar->offset = offset;
+    st->simpleVar.offset = offset;
     return st;
 }
 

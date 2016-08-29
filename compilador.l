@@ -275,8 +275,8 @@ integer {
 
 %%
 
-main(int argc, char **argv) {
+/*main(int argc, char **argv) {
     yyin = fopen(argv[1], "r");
     while(yylex());
     fclose(yyin);
-}
+}*/

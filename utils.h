@@ -13,7 +13,7 @@ struct SimpleVar {
 typedef struct SimpleVar* SimpleVar;
 
 union Cat{
-    SimpleVar simpleVar;
+    struct SimpleVar simpleVar;
     /*
     procedure;
     function;

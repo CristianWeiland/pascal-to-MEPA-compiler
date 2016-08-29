@@ -15,5 +15,5 @@ compilador.o : compilador.h compiladorF.c
 utils.o : utils.h utils.c
 	gcc -c utils.c -o utils.o
 
-clean : 
-	rm -f compilador.tab.* lex.yy.c 
+clean :
+	rm -f compilador.tab.* lex.yy.c *.o compilador

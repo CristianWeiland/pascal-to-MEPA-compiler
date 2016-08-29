@@ -36,8 +36,10 @@ programa    :{
              }
              PROGRAM IDENT
              ABRE_PARENTESES lista_idents FECHA_PARENTESES PONTO_E_VIRGULA
-             bloco PONTO {
+             bloco  PONTO {
              geraCodigo (NULL, "PARA");
+             deleteST(symbolTable);
+             deleteStack(labels);
              }
 ;
 
@@ -74,7 +76,7 @@ declara_var : { }
               PONTO_E_VIRGULA
 ;
 
-tipo        : IDENT
+tipo        : INTEGER
 ;
 
 lista_id_var: lista_id_var VIRGULA IDENT {
@@ -107,7 +109,7 @@ rotulo: NUMERO DOIS_PONTOS | ;
 
 comando_sem_rotulo: atribuicao | comando_repetitivo;
 
-atribuicao: variavel DOIS_PONTOS IGUAL expr {
+atribuicao: variavel ATRIBUICAO expr {
         char armz[13]; // Da ateh 3 digitos de inteiros
         sprintf(armz, "ARMZ %d,%d", lexLevel, deslocamento);
         geraCodigo(NULL, armz);
@@ -156,7 +158,7 @@ comando_repetitivo: WHILE {
     };
 
 %%
-/*
+
 main (int argc, char** argv) {
    FILE* fp;
    extern FILE* yyin;
@@ -176,11 +178,11 @@ main (int argc, char** argv) {
 /* -------------------------------------------------------------------
  *  Inicia a Tabela de Símbolos
  * ------------------------------------------------------------------- */
-/*
+
    yyin=fp;
    yyparse();
 
    return 0;
 }
 
-*/
+
