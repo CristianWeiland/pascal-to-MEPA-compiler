@@ -4,35 +4,9 @@
 #include "utils.h"
 
 #define STACK_SIZE 100
-#define MAX_SYMB_LEN 10
 #define LABEL_LENGTH 6
 
 int label = -1;
-
-struct SimpleVar {
-    int offset;
-};
-
-union Cat{
-    SimpleVar simpleVar;
-    /*
-    procedure;
-    function;
-    label;
-    */
-};
-
-struct Element { // Sujeito a mudança
-    char symbol[MAX_SYMB_LEN + 1];
-    int lexLevel;
-    int cat;
-    Cat value;
-};
-
-struct ST {
-    int head;
-    Element elems[100];
-};
 
 ST initST() {
     ST st = (ST) malloc(sizeof(struct ST));

@@ -4,10 +4,40 @@
 #include <stdio.h>
 #include <math.h>
 
+#define MAX_SYMB_LEN 10
+
+struct SimpleVar {
+    int offset;
+};
+
 typedef struct SimpleVar* SimpleVar;
+
+union Cat{
+    SimpleVar simpleVar;
+    /*
+    procedure;
+    function;
+    label;
+    */
+};
+
 typedef union Cat* Cat;
-typedef struct ST* ST;
+
+struct Element { // Sujeito a mudança
+    char symbol[MAX_SYMB_LEN + 1];
+    int lexLevel;
+    int cat;
+    Cat value;
+};
+
 typedef struct Element* Element;
+
+struct ST {
+    int head;
+    Element elems[100];
+};
+
+typedef struct ST* ST;
 typedef struct Stack *Stack;
 
 enum CATEGORIES { SIMPLEVAR };
