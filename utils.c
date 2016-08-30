@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "utils.h"
+#include "compilador.h"
 
 #define STACK_SIZE 100
 #define LABEL_LENGTH 6
@@ -114,3 +115,16 @@ int main() {
     return 0;
 }
 */
+
+/*Error Functions*/
+void eSymbolNotFound(const char* token){
+    char r[50];
+    sprintf(r, "Simbolo %s não foi declarado", token);
+    imprimeErro(r);
+}
+
+void eDuplicateSymbol(const char* token){
+    char r[50];
+    sprintf(r, "Simbolo %s já foi declarado anteriormente", token);
+    imprimeErro(r);
+}

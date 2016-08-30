@@ -12,7 +12,7 @@ y.tab.c: compilador.y compilador.h
 compilador.o : compilador.h compiladorF.c
 	gcc -c compiladorF.c -o compilador.o
 
-utils.o : utils.h utils.c
+utils.o : utils.h utils.c compilador.h
 	gcc -c utils.c -o utils.o
 
 clean :

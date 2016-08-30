@@ -123,9 +123,8 @@ atribuicao: variavel ATRIBUICAO expr {
 
 variavel: IDENT {
             int i;
-            if((i = searchST(symbolTable, token)) == -1) {
-                printf("(Variavel) Symbol %s not found. Aborting...\n", token);
-                exit(1);
+            if((i = searchST(symbolTable, token)) < 0) {
+                eSymbolNotFound(token);
             }
             atribuido = symbolTable->elems[i];
         }
@@ -147,6 +146,9 @@ f: NUMERO {
     geraCodigo(NULL, crct);
 } | IDENT {
     int i = searchST(symbolTable, token);
+    if(i < 0){
+        eSymbolNotFound(token);
+    }
     Element elem = symbolTable->elems[i];
     char crvl[13]; // Da ateh 3 digitos de inteiros
     sprintf(crvl, "CRVL %d,%d", elem->lexLevel, elem->value->simpleVar.offset);
@@ -174,7 +176,7 @@ comando_repetitivo: WHILE {
 
 %%
 
-main (int argc, char** argv) {
+int main (int argc, char** argv) {
    FILE* fp;
    extern FILE* yyin;
 
@@ -195,4 +197,6 @@ main (int argc, char** argv) {
    return 0;
 }
 
-
+void yyerror (char* msg){
+    imprimeErro(msg);
+}

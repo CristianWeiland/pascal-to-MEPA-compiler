@@ -54,5 +54,10 @@ Stack initStack();
 void push(Stack stack, void *elem);
 void* pop(Stack stack);
 void deleteStack(Stack stack);
+
+/* Error functions*/
+void eSymbolNotFound(const char* token);
+void eDuplicateSymbol(const char* token);
+
 #endif
 
