@@ -146,9 +146,11 @@ f: NUMERO {
     sprintf(crct, "CRCT %s", token);
     geraCodigo(NULL, crct);
 } | IDENT {
-    puts(token);
     int i = searchST(symbolTable, token);
-    // TA INCOMPLETO
+    Element elem = symbolTable->elems[i];
+    char crvl[13]; // Da ateh 3 digitos de inteiros
+    sprintf(crvl, "CRVL %d,%d", elem->lexLevel, elem->value->simpleVar.offset);
+    geraCodigo(NULL, crvl);
 }
 
 /* Implementa while */
