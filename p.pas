@@ -1,5 +1,6 @@
 program p (input, output);
-var x : integer;
+var x, y, z, o , p : integer;
+    coisa : integer;
 begin
     x := x
 end.
