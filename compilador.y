@@ -140,7 +140,6 @@ t: t ASTERISCO f {
     geraCodigo(NULL, "DISJ");
 } | f
 f: NUMERO {
-    printf("Numero eh %s\n", token);
     char crct[13];
     sprintf(crct, "CRCT %s", token);
     geraCodigo(NULL, crct);
