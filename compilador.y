@@ -120,7 +120,7 @@ comando: rotulo comando_sem_rotulo;
 /* Ou 'numero DOIS_PONTOS' ou nada. Suponho que, se nao tem nada, eu deixo em branco soh. */
 rotulo: NUMERO DOIS_PONTOS | ;
 
-comando_sem_rotulo: atribuicao | comando_repetitivo;
+comando_sem_rotulo: atribuicao | comando_repetitivo | comando_condicional;
 
 atribuicao: variavel ATRIBUICAO expr {
         char armz[13]; // Da ateh 3 digitos de inteiros
@@ -253,6 +253,26 @@ comando_repetitivo: WHILE {
         free(label_out);
         free(label_in);
     };
+
+comando_condicional: IF ABRE_PARENTESES expressao FECHA_PARENTESES
+                  THEN {
+                      char *label_out = nextLabel();
+                      push(labels, label_out);
+                      char aux[15]; // Precisa 10 soh acho.
+                      strcpy(aux, "DSVF ");
+                      strcat(aux, label_out);
+                      geraCodigo(NULL, aux);
+                  } cmd_simples_ou_composto {
+                      char *label_out = (char *) pop(labels);
+                      geraCodigo(label_out, "NADA");
+                      free(label_out);
+                  }
+               /* | IF ABRE_PARENTESES expressao FECHA_PARENTESES
+                  THEN cmd_simples_ou_composto
+                  ELSE cmd_simples_ou_composto
+               */
+
+
 %%
 
 int main (int argc, char** argv) {
