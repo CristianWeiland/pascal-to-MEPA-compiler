@@ -1,0 +1,8 @@
+before_script:
+    - apt-get upgrade --yes
+    - apt-get update --yes
+    - apt-get install flex bison --yes
+    - make
+compile:
+    script:
+        - ./test/test.sh

@@ -1,3 +1,4 @@
+(*Soma com mais de dois elementos*)
 program p(input, output);
 var a, b, c, d: integer;
 begin

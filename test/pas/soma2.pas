@@ -1,3 +1,4 @@
+(*Soma de variavel com constante*)
 program p(input, output);
 var a, b: integer;
 begin
