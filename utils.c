@@ -63,7 +63,7 @@ Cat initSimpleVar(int offset) {
 char* nextLabel() {
     char* str;
     str = (char *) malloc(sizeof(char) * LABEL_LENGTH);
-    sprintf(str, "r%04d", ++label);
+    sprintf(str, "r%03d", ++label);
     return str;
 }
 

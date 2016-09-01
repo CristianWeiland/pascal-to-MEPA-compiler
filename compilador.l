@@ -259,6 +259,37 @@ integer {
           return IGUAL;
  }
 
+\>  { simbolo = simb_maior;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" maior ");
+          return MAIOR;
+ }
+
+\>\=  { simbolo = simb_maior_igual;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" maior_igual ");
+          return MAIOR_IGUAL;
+ }
+
+\<  { simbolo = simb_menor;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" menor ");
+          return MENOR;
+ }
+
+\<\=  { simbolo = simb_menor_igual;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" menor_igual ");
+          return MENOR_IGUAL;
+ }
+
+\<\>  { simbolo = simb_desigual;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" desigual ");
+          return DESIGUAL;
+ }
+
+
 {numero} { simbolo = simb_numero;
           strncpy (token, yytext, TAM_TOKEN);
           IMPRIME(" numero  ");

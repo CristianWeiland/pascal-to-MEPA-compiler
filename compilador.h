@@ -25,7 +25,9 @@ typedef enum simbolos {
   simb_function, simb_goto, simb_if, simb_then, simb_else,
   simb_while, simb_do, simb_or, simb_div, simb_and, simb_not,
   simb_integer, simb_mais, simb_menos, simb_asterisco, simb_barra,
-  simb_igual
+  simb_igual, simb_maior, simb_menor, simb_maior_igual,
+  simb_menor_igual, simb_desigual
+
 } simbolos;
 
 void yyerror (char* msg);
@@ -41,9 +43,5 @@ extern int nivel_lexico;
 extern int desloc;
 extern int nl;
 
-
 simbolos simbolo, relacao;
 char token[TAM_TOKEN];
-
-
-

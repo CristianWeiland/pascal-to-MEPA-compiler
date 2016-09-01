@@ -17,6 +17,7 @@ ST symbolTable;
 Stack labels;
 Stack ExprE, ExprT, ExprF;
 Element atribuido;
+char Operacao[5];
 
 %}
 
@@ -27,7 +28,8 @@ Element atribuido;
 %token LABEL TYPE ARRAY OF PROCEDURE FUNCTION
 %token GOTO IF THEN ELSE WHILE DO OR DIV AND NOT
 %token INTEGER MAIS MENOS ASTERISCO BARRA
-%token IGUAL NUMERO
+%token IGUAL NUMERO MAIOR MENOR DESIGUAL
+%token MAIOR_IGUAL MENOR_IGUAL
 
 %%
 
@@ -136,15 +138,49 @@ variavel: IDENT {
             atribuido = symbolTable->elems[i];
         }
 
+expressao: expr relacao expr {
+    /*
+    checa_tipo(ExprE, ExprE, "boolean");
+    */
+    geraCodigo(NULL, Operacao);
+} | expr {
+    /* if(strcmp("boolean", (char *) pop(ExprE)) != 0) {
+        imprimeErro("Erro na verificacao de tipos.");
+    }*/
+};
+
+relacao: MAIOR {
+    strcpy(Operacao, "CMMA");
+} | MENOR {
+    strcpy(Operacao, "CMME");
+} | MAIOR_IGUAL {
+    strcpy(Operacao, "CMAG");
+} | MENOR_IGUAL {
+    strcpy(Operacao, "CMEG");
+} | IGUAL {
+    strcpy(Operacao, "CMIG");
+} | DESIGUAL {
+    strcpy(Operacao, "CMDG");
+};
+
 expr: expr MAIS t {
     geraCodigo(NULL, "SOMA");
     checa_tipo(ExprT, ExprE, "integer");
+
+    char type[] = "integer";
+    push(ExprE, (void*)type);
 } | expr OR t {
     geraCodigo(NULL, "CONJ");
     checa_tipo(ExprT, ExprE, "boolean");
+
+    char type[] = "boolean";
+    push(ExprE, (void*)type);
 } | expr MENOS t {
     geraCodigo(NULL, "SUBT");
     checa_tipo(ExprT, ExprE, "integer");
+
+    char type[] = "integer";
+    push(ExprE, (void*)type);
 } | t {
     push(ExprE, pop(ExprT));
 }
@@ -195,15 +231,23 @@ comando_repetitivo: WHILE {
         char *label_in = nextLabel();
         push(labels, label_in);
         geraCodigo(label_in, "NADA");
-    } expr DO {
+    } ABRE_PARENTESES expressao FECHA_PARENTESES DO {
         char *label_out = nextLabel();
         push(labels, label_out);
-        geraCodigo(NULL, strcat("DSVF ", label_out));
+        char aux[15]; // Precisa 10 soh acho.
+        strcpy(aux, "DSVF ");
+        strcat(aux, label_out);
+        geraCodigo(NULL, aux);
     }
     comando_sem_rotulo {
         char *label_out = (char *) pop(labels);
         char *label_in = (char *) pop(labels);
-        geraCodigo(NULL, strcat("DSVS ", label_in));
+
+        char aux[15]; // Precisa 10 soh acho.
+        strcpy(aux, "DSVS ");
+        strcat(aux, label_in);
+
+        geraCodigo(NULL, aux);
         geraCodigo(label_out, "NADA");
         free(label_out);
         free(label_in);
