@@ -211,7 +211,6 @@ integer {
           return VIRGULA;
  }
 
-
 \. { simbolo = simb_ponto;
           strncpy (token, yytext, TAM_TOKEN);
           IMPRIME(" ponto  ");

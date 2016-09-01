@@ -15,6 +15,7 @@ int offset, lexLevel = 0;
 // Obs: Nao da pra inicializar coisas aqui!
 ST symbolTable;
 Stack labels;
+Stack ExprE, ExprT, ExprF;
 Element atribuido;
 
 %}
@@ -25,7 +26,7 @@ Element atribuido;
 // Adicionados por nois
 %token LABEL TYPE ARRAY OF PROCEDURE FUNCTION
 %token GOTO IF THEN ELSE WHILE DO OR DIV AND NOT
-%token INTEGER MAIS MENOS ASTERISCO BARRA OU E
+%token INTEGER MAIS MENOS ASTERISCO BARRA
 %token IGUAL NUMERO
 
 %%
@@ -33,6 +34,9 @@ Element atribuido;
 programa    :{
              symbolTable = initST();
              labels = initStack();
+             ExprE = initStack();
+             ExprT = initStack();
+             ExprF = initStack();
              atribuido = NULL;
              geraCodigo (NULL, "INPP");
              }
@@ -45,6 +49,9 @@ programa    :{
              geraCodigo (NULL, "PARA");
              deleteST(symbolTable);
              deleteStack(labels);
+             deleteStack(ExprE);
+             deleteStack(ExprT);
+             deleteStack(ExprF);
              }
 ;
 
@@ -131,22 +138,44 @@ variavel: IDENT {
 
 expr: expr MAIS t {
     geraCodigo(NULL, "SOMA");
-} | expr OU t {
+    checa_tipo(ExprT, ExprE, "integer");
+} | expr OR t {
     geraCodigo(NULL, "CONJ");
+    checa_tipo(ExprT, ExprE, "boolean");
 } | expr MENOS t {
     geraCodigo(NULL, "SUBT");
-} | t
+    checa_tipo(ExprT, ExprE, "integer");
+} | t {
+    push(ExprE, pop(ExprT));
+}
+
 t: t ASTERISCO f {
     geraCodigo(NULL, "MULT");
-} | t E f {
+    checa_tipo(ExprF, ExprT, "integer");
+    char type[] = "integer";
+    push(ExprT, (void*)type);
+} | t AND f {
     geraCodigo(NULL, "DISJ");
+    checa_tipo(ExprF, ExprT, "boolean");
+    char type[] = "boolean";
+    push(ExprT, (void*)type);
 } | t BARRA f {
     geraCodigo(NULL, "DIVI");
-} | f
+    checa_tipo(ExprF, ExprT, "integer");
+    char type[] = "integer";
+    push(ExprT, (void*)type);
+} | f {
+    // Joga o tipo pra cima.
+    push(ExprT, pop(ExprF));
+}
+
 f: NUMERO {
     char crct[13];
     sprintf(crct, "CRCT %s", token);
     geraCodigo(NULL, crct);
+
+    char type[] = "integer";
+    push(ExprF, (void*)type);
 } | IDENT {
     int i = searchST(symbolTable, token);
     if(i < 0){
@@ -156,6 +185,9 @@ f: NUMERO {
     char crvl[13]; // Da ateh 3 digitos de inteiros
     sprintf(crvl, "CRVL %d,%d", elem->lexLevel, elem->value->simpleVar.offset);
     geraCodigo(NULL, crvl);
+
+    char type[] = "integer";
+    push(ExprF, (void*)type);
 }
 
 /* Implementa while */
@@ -183,10 +215,10 @@ int main (int argc, char** argv) {
    FILE* fp;
    extern FILE* yyin;
 
-   if (argc<2 || argc>2) {
-         printf("usage compilador <arq>a %d\n", argc);
-         return(-1);
-      }
+   if (argc != 2) {
+       printf("usage compilador <arq>a %d\n", argc);
+       return(-1);
+   }
 
    fp=fopen (argv[1], "r");
    if (fp == NULL) {
@@ -202,4 +234,12 @@ int main (int argc, char** argv) {
 
 void yyerror (char* msg){
     imprimeErro(msg);
+}
+
+void checa_tipo(Stack F, Stack T, const char* expected) {
+    char *x = (char *) pop(F);
+    char *y = (char *) pop(T);
+    if(strcmp(x, expected) != 0 || strcmp(y, expected) != 0) {
+        imprimeErro("Erro na verificacao de tipos.");
+    }
 }

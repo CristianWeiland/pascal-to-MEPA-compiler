@@ -11,6 +11,8 @@
  *
  * ------------------------------------------------------------------- */
 
+#include "utils.h"
+
 #define TAM_TOKEN 16
 
 typedef enum simbolos { 
@@ -26,7 +28,8 @@ typedef enum simbolos {
   simb_igual
 } simbolos;
 
-
+void yyerror (char* msg);
+void checa_tipo(Stack F, Stack T, const char* expected);
 
 /* -------------------------------------------------------------------
  * variáveis globais
