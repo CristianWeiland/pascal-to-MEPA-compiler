@@ -133,14 +133,17 @@ expr: expr MAIS t {
     geraCodigo(NULL, "SOMA");
 } | expr OU t {
     geraCodigo(NULL, "CONJ");
+} | expr MENOS t {
+    geraCodigo(NULL, "SUBT");
 } | t
 t: t ASTERISCO f {
     geraCodigo(NULL, "MULT");
 } | t E f {
     geraCodigo(NULL, "DISJ");
+} | t BARRA f {
+    geraCodigo(NULL, "DIVI");
 } | f
 f: NUMERO {
-    printf("Numero eh %s\n", token);
     char crct[13];
     sprintf(crct, "CRCT %s", token);
     geraCodigo(NULL, crct);
