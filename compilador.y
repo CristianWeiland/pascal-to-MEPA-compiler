@@ -111,7 +111,6 @@ lista_idents: lista_idents VIRGULA IDENT
             | IDENT
 ;
 
-
 comando_composto: T_BEGIN comandos T_END;
 
 comandos: comandos PONTO_E_VIRGULA comando | comando;
@@ -226,6 +225,8 @@ f: NUMERO {
     push(ExprF, (void*)type);
 }
 
+cmd_simples_ou_composto: comando_composto | comando_sem_rotulo;
+
 /* Implementa while */
 comando_repetitivo: WHILE {
         char *label_in = nextLabel();
@@ -239,7 +240,7 @@ comando_repetitivo: WHILE {
         strcat(aux, label_out);
         geraCodigo(NULL, aux);
     }
-    comando_sem_rotulo {
+    cmd_simples_ou_composto {
         char *label_out = (char *) pop(labels);
         char *label_in = (char *) pop(labels);
 
@@ -252,7 +253,6 @@ comando_repetitivo: WHILE {
         free(label_out);
         free(label_in);
     };
-
 %%
 
 int main (int argc, char** argv) {
