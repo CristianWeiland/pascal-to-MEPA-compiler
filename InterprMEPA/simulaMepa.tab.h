@@ -1,21 +1,19 @@
+/* A Bison parser, made by GNU Bison 3.0.2.  */
 
-/* A Bison parser, made by GNU Bison 2.4.1.  */
+/* Bison interface for Yacc-like parsers in C
 
-/* Skeleton interface for Bison's Yacc-like parsers in C
-   
-      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
-   Free Software Foundation, Inc.
-   
+   Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
+
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
-   
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
@@ -28,41 +26,76 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-   
+
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-
-/* Tokens.  */
-#ifndef YYTOKENTYPE
-# define YYTOKENTYPE
-   /* Put the tokens into the symbol table, so that GDB and other debuggers
-      know about them.  */
-   enum yytokentype {
-     PROGRAM = 258,
-     ABRE_PARENTESES = 259,
-     FECHA_PARENTESES = 260,
-     VIRGULA = 261,
-     PONTO_E_VIRGULA = 262,
-     DOIS_PONTOS = 263,
-     PONTO = 264,
-     T_BEGIN = 265,
-     T_END = 266,
-     VAR = 267,
-     IDENT = 268,
-     ATRIBUICAO = 269
-   };
+#ifndef YY_YY_SIMULAMEPA_TAB_H_INCLUDED
+# define YY_YY_SIMULAMEPA_TAB_H_INCLUDED
+/* Debug traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
+#endif
+#if YYDEBUG
+extern int yydebug;
 #endif
 
+/* Token type.  */
+#ifndef YYTOKENTYPE
+# define YYTOKENTYPE
+  enum yytokentype
+  {
+    DOIS_PONTOS = 258,
+    ROTULO = 259,
+    INTEIRO = 260,
+    VIRGULA = 261,
+    INPP = 262,
+    PARA = 263,
+    SOMA = 264,
+    SUBT = 265,
+    MULT = 266,
+    DIVI = 267,
+    INVR = 268,
+    CONJ = 269,
+    DISJ = 270,
+    NEGA = 271,
+    CMME = 272,
+    CMMA = 273,
+    CMIG = 274,
+    CMDG = 275,
+    CMEG = 276,
+    CMAG = 277,
+    NADA = 278,
+    LEIT = 279,
+    IMPR = 280,
+    CRCT = 281,
+    AMEM = 282,
+    DMEM = 283,
+    ENPR = 284,
+    ENRT = 285,
+    DSVS = 286,
+    DSVF = 287,
+    CRVL = 288,
+    ARMZ = 289,
+    CRVI = 290,
+    ARMI = 291,
+    CREN = 292,
+    CHPR = 293,
+    RTPR = 294,
+    DSVR = 295
+  };
+#endif
 
-
+/* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef int YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
-# define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
+
 extern YYSTYPE yylval;
 
+int yyparse (void);
 
+#endif /* !YY_YY_SIMULAMEPA_TAB_H_INCLUDED  */

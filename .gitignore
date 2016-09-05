@@ -1,0 +1,8 @@
+*.swp
+compilador
+compilador.tab.*
+lex.yy.c
+*.o
+MEPA
+executa.sh
+*.output
