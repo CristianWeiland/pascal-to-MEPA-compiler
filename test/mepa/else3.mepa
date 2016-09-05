@@ -1,0 +1,36 @@
+     INPP
+     AMEM 1
+     CRCT 2
+     ARMZ 0,0
+     CRVL 0,0
+     CRCT 2
+     CMIG
+     DSVF r000
+
+     CRVL 0,0
+     CRCT 1
+     CMMA
+     DSVF r002
+     CRCT 1
+     ARMZ 0,0
+     DSVS r003
+r002: NADA 
+     CRCT 2
+     ARMZ 0,0
+r003: NADA 
+     DSVS r001
+r000: NADA 
+     CRVL 0,0
+     CRCT 2
+     CMME
+     DSVF r004
+     CRCT 5
+     ARMZ 0,0
+     DSVS r005
+r004: NADA 
+     CRCT 6
+     ARMZ 0,0
+r005: NADA 
+r001: NADA 
+     DMEM 1
+     PARA
