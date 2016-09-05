@@ -277,7 +277,7 @@ computa_cmd_else
 r01: NADA
 
 */
-
+/*
 comando_condicional: IF ABRE_PARENTESES expressao FECHA_PARENTESES THEN {
                       char *label_out = nextLabel();
                       push(labels, label_out);
@@ -311,7 +311,45 @@ cmd_composto_else: cmd_simples_ou_composto {
                       geraCodigo(label_out, "NADA");
                       free(label_out);
                   }
+*/
+comando_condicional: IF ABRE_PARENTESES expressao FECHA_PARENTESES THEN {
+                      char *label_out = nextLabel();
+                      push(labels, label_out);
+                      char aux[15]; // Precisa 10 soh acho.
+                      strcpy(aux, "DSVF ");
+                      strcat(aux, label_out);
+                      geraCodigo(NULL, aux);
+                  } cmd_simples_ou_composto {
+                      char *label_out = (char *) pop(labels);
+                      geraCodigo(label_out, "NADA");
+                      free(label_out);
+                  } LOWER_THAN_ELSE
+                  | IF ABRE_PARENTESES expressao FECHA_PARENTESES THEN {
+                      char *label_out = nextLabel();
+                      push(labels, label_out);
+                      char aux[15]; // Precisa 10 soh acho.
+                      strcpy(aux, "DSVF ");
+                      strcat(aux, label_out);
+                      geraCodigo(NULL, aux);
+                  } cmd_simples_ou_composto {
+                      // Insere DSVS e rotulo do else. Obs: O pop deve ser feito ANTES do push!!
+                      char *label_in = nextLabel();
+                      char aux[15];
+                      strcpy(aux, "DSVS ");
+                      strcat(aux, label_in);
+                      geraCodigo(NULL, aux);
 
+                      char *label_out = (char *) pop(labels);
+                      geraCodigo(label_out, "NADA");
+                      free(label_out);
+
+                      push(labels, label_in);
+                  } ELSE cmd_simples_ou_composto {
+                      // Insere o rotulo do fim do if (pra pular o else caso a expressao tenha sido true)
+                      char *label_out = (char *) pop(labels);
+                      geraCodigo(label_out, "NADA");
+                      free(label_out);
+                  }
 
 %%
 
