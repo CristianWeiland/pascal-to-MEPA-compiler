@@ -281,33 +281,38 @@ if_then = if_then
 cond_else = cmd_composto_else
 */
 
-comando_condicional : if_then cmd_composto_else
-                        {
-
-                        }
-;
+comando_condicional : if_then cmd_composto_else {
+    // Gera o ultimo rotulo, que vai ser destino do DSVF (depois do fim do if then else).
+    char *label_out = (char *) pop(labels);
+    geraCodigo(label_out, "NADA");
+    free(label_out);
+};
 
 if_then : IF ABRE_PARENTESES expressao FECHA_PARENTESES {
+    // Gera DSVF
+    char *label_out = nextLabel();
+    push(labels, label_out);
+    char aux[15]; // Precisa 10 soh acho.
+    strcpy(aux, "DSVF ");
+    strcat(aux, label_out);
+    geraCodigo(NULL, aux);
+} THEN cmd_simples_ou_composto;
 
-            }
-            THEN cmd_simples_ou_composto {
-                 // Insere DSVS e rotulo do else. Obs: O pop deve ser feito ANTES do push!!
-                 char *label_in = nextLabel();
-                 char aux[15];
-                 strcpy(aux, "DSVS ");
-                 strcat(aux, label_in);
-                 geraCodigo(NULL, aux);
+cmd_composto_else : {
+    // Insere DSVS e rotulo do else. Obs: O pop deve ser feito ANTES do push!!
+    char *label_in = nextLabel();
+    char aux[15];
+    strcpy(aux, "DSVS ");
+    strcat(aux, label_in);
+    geraCodigo(NULL, aux);
 
-                 char *label_out = (char *) pop(labels);
-                 geraCodigo(label_out, "NADA");
-                 free(label_out);
+    char *label_out = (char *) pop(labels);
+    geraCodigo(label_out, "NADA");
+    free(label_out);
 
-                 push(labels, label_in);
-            }
-;
-
-cmd_composto_else : ELSE comando_sem_rotulo
-                  | %prec LOWER_THAN_ELSE
+    push(labels, label_in);
+} ELSE cmd_simples_ou_composto
+| %prec LOWER_THAN_ELSE;
 
 /*
 comando_condicional: IF ABRE_PARENTESES expressao FECHA_PARENTESES THEN {
