@@ -8,6 +8,7 @@
      DSVF r000
      CRVL 0,0
      CRCT 2
+     CMIG
      DSVF r001
      CRCT 5
      ARMZ 0,0
