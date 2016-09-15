@@ -9,15 +9,15 @@
      CRVL 0,0
      CRCT 1
      CMMA
-     DSVF r002
+     DSVF r001
      CRCT 1
      ARMZ 0,0
-     DSVS r003
-r002: NADA 
+     DSVS r002
+r001: NADA 
      CRCT 2
      ARMZ 0,0
-r003: NADA 
-     DSVS r001
+r002: NADA 
+     DSVS r003
 r000: NADA 
      CRVL 0,0
      CRCT 2
@@ -30,6 +30,6 @@ r004: NADA
      CRCT 6
      ARMZ 0,0
 r005: NADA 
-r001: NADA 
+r003: NADA 
      DMEM 1
      PARA
