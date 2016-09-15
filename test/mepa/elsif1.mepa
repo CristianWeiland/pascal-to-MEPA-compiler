@@ -9,7 +9,7 @@
      CRCT 1
      ARMZ 0,0
      DSVS r001
-r000: NADA 
+r000: NADA
      CRVL 0,0
      CRCT 20
      CMIG
@@ -17,7 +17,7 @@ r000: NADA
      CRCT 2
      ARMZ 0,0
      DSVS r003
-r002: NADA 
+r002: NADA
      CRVL 0,0
      CRCT 30
      CMAG
@@ -25,11 +25,11 @@ r002: NADA
      CRCT 3
      ARMZ 0,0
      DSVS r005
-r004: NADA 
+r004: NADA
      CRCT 0
      ARMZ 0,0
-r005: NADA 
-r003: NADA 
-r001: NADA 
+r005: NADA
+r003: NADA
+r001: NADA
      DMEM 1
      PARA

@@ -4,7 +4,7 @@
      ARMZ 0,0
      CRCT 2
      ARMZ 0,1
-r000: NADA 
+r000: NADA
      CRVL 0,0
      CRVL 0,1
      CMME
@@ -14,6 +14,6 @@ r000: NADA
      SOMA
      ARMZ 0,0
      DSVS r000
-r001: NADA 
+r001: NADA
      DMEM 2
      PARA

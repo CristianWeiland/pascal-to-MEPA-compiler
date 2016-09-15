@@ -13,10 +13,10 @@
      CRCT 5
      ARMZ 0,0
      DSVS r002
-r001: NADA 
+r001: NADA
      CRCT 3
      ARMZ 0,0
-r002: NADA 
-r000: NADA 
+r002: NADA
+r000: NADA
      DMEM 1
      PARA

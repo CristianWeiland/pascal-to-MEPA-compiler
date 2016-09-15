@@ -9,9 +9,9 @@
      CRCT 1
      ARMZ 0,0
      DSVS r001
-r000: NADA 
+r000: NADA
      CRCT 2
      ARMZ 0,0
-r001: NADA 
+r001: NADA
      DMEM 1
      PARA
