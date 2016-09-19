@@ -36,37 +36,31 @@ char Operacao[5];
 
 %%
 
-programa    :{
-             symbolTable = initST();
-             labels = initStack();
-             ExprE = initStack();
-             ExprT = initStack();
-             ExprF = initStack();
-             atribuido = NULL;
-             geraCodigo (NULL, "INPP");
-             }
-             PROGRAM IDENT
-             ABRE_PARENTESES lista_idents FECHA_PARENTESES PONTO_E_VIRGULA
-             bloco PONTO {
-             char dmem[10];
-             sprintf(dmem, "DMEM %d", offset);
-             geraCodigo(NULL, dmem);
-             geraCodigo (NULL, "PARA");
-             deleteST(symbolTable);
-             deleteStack(labels);
-             deleteStack(ExprE);
-             deleteStack(ExprT);
-             deleteStack(ExprF);
-             }
+programa: {
+    symbolTable = initST();
+    labels = initStack();
+    ExprE = initStack();
+    ExprT = initStack();
+    ExprF = initStack();
+    atribuido = NULL;
+    geraCodigo (NULL, "INPP");
+} PROGRAM IDENT ABRE_PARENTESES lista_idents FECHA_PARENTESES PONTO_E_VIRGULA bloco PONTO {
+    char dmem[10];
+    sprintf(dmem, "DMEM %d", offset);
+    geraCodigo(NULL, dmem);
+    geraCodigo (NULL, "PARA");
+    deleteST(symbolTable);
+    deleteStack(labels);
+    deleteStack(ExprE);
+    deleteStack(ExprT);
+    deleteStack(ExprF);
+};
+
+bloco :
+    parte_declara_vars
+    parte_declara_subrotina
+    comando_composto
 ;
-
-bloco       :
-              parte_declara_vars
-              {
-              }
-
-              comando_composto
-              ;
 
 
 
@@ -113,6 +107,18 @@ lista_id_var: lista_id_var VIRGULA IDENT {
 lista_idents: lista_idents VIRGULA IDENT
             | IDENT
 ;
+
+parte_declara_subrotina: parte_declara_procedimento | ;
+
+parte_declara_procedimento: PROCEDURE ident parte_params_formais PONTO_E_VIRGULA bloco;
+
+parte_params_formais: ABRE_PARENTESES params_formais FECHA_PARENTESES PONTO_E_VIRGULA | ;
+
+params_formais: params_formais PONTO_E_VIRGULA param | param;
+
+param: lista_args DOIS_PONTOS tipo;
+
+lista_args: lista_args VIRGULA ident | ident;
 
 comando_composto: T_BEGIN comandos T_END;
 
