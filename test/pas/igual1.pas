@@ -1,3 +1,4 @@
+(*Testa comparacao if(a = CONST)*)
 program p(input, output);
 var a: integer;
 begin
