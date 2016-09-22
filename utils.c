@@ -24,6 +24,12 @@ void deleteST(ST st) {
     return;
 }
 
+int pushST(ST st, Element elem) {
+    ++(st->head);
+    st->elems[st->head] = elem;
+    return st->head;
+}
+
 int insertST(ST st, const char* symb, int lexlev, int cat, Cat value) { // Mudar pra push?
     Element elem = (Element) malloc(sizeof(struct Element));
     strncpy(elem->symbol, symb, MAX_SYMB_LEN);

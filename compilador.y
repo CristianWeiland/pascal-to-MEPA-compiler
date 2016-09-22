@@ -19,6 +19,11 @@ Stack ExprE, ExprT, ExprF;
 Element atribuido;
 char Operacao[5];
 
+/* Coisas de procedures */
+Element procedure;
+Procedure proc;
+int referencia = 0;
+
 %}
 
 %token PROGRAM ABRE_PARENTESES FECHA_PARENTESES
@@ -77,12 +82,10 @@ declara_var: lista_id_var DOIS_PONTOS tipo PONTO_E_VIRGULA;
 tipo: INTEGER;
 
 lista_id_var: lista_id_var VIRGULA IDENT {
-    //token ja está definido ?
     Cat cat = initSimpleVar(offset);
     insertST(symbolTable, token, lexLevel, SIMPLEVAR, cat);
     ++offset;
 } | IDENT {
-    //token ja está definido ?
     Cat cat = initSimpleVar(offset);
     insertST(symbolTable, token, lexLevel, SIMPLEVAR, cat);
     ++offset;
@@ -90,9 +93,39 @@ lista_id_var: lista_id_var VIRGULA IDENT {
 
 lista_idents: lista_idents VIRGULA IDENT | IDENT;
 
-parte_declara_subrotina: parte_declara_procedimento | ;
+parte_declara_subrotina: parte_declara_subrotina parte_declara_procedimento | ;
 
-parte_declara_procedimento: PROCEDURE ident parte_params_formais PONTO_E_VIRGULA bloco;
+parte_declara_procedimento: PROCEDURE {
+    // ENPR lex_level do procedimento.
+    char dsvs[10];
+    // Gera rotulo de saida.
+    char *label_in = nextLabel();
+    sprintf(dsvs, "DSVS %s", label_in);
+    push(labels, label_in); // Guarda pra poder declarar o rotulo depois (r000: NADA).
+    geraCodigo(NULL, dsvs);
+
+    char enpr[8];
+    char *label_proc = nextLabel();
+    ++lex_level;
+    sprintf(enpr, "ENPR %d", lex_level);
+    // FALTA GUARDAR NA TS O LABEL DO PROCEDIMENTO!
+    // r01: ENPR 1.
+    geraCodigo(label_proc, enpr);
+
+    procedure = (Element) malloc(sizeof(struct Element));
+    procedure.lexLevel = lex_level;
+    proc = (Procedure) malloc(sizeof(struct Procedure));
+    proc.n_params = 0;
+    procedure.value = proc;
+    strncpy(proc.label, label_proc, MAX_SYMB_LEN);
+    pushST(symbolTable, procedure);
+} ident {
+    strncpy(procedure.symbol, token, MAX_SYMB_LEN);
+} parte_params_formais PONTO_E_VIRGULA bloco {
+    --lex_level;
+    // Cria rotulo de saida.
+    geraCodigo(pop(labels), "NADA");
+};
 
 parte_params_formais: ABRE_PARENTESES params_formais FECHA_PARENTESES PONTO_E_VIRGULA | ;
 
@@ -100,7 +133,15 @@ params_formais: params_formais PONTO_E_VIRGULA param | param;
 
 param: lista_args DOIS_PONTOS tipo;
 
-lista_args: lista_args VIRGULA ident | ident;
+lista_args: lista_args VIRGULA ident {
+    proc.n_params++;
+    FormalParam fp = (FormalParam) malloc(sizeof(struct FormalParam));
+    fp.offset = ??;
+    fp.referencia = referencia;
+    insertST(symbolTable, token, lex_level, 0, fp);
+} | ident {
+    proc.n_params++;
+};
 
 comando_composto: T_BEGIN comandos T_END;
 

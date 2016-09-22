@@ -10,12 +10,23 @@ struct SimpleVar {
     int offset;
 };
 
+struct Procedure {
+    int n_params;
+    char *label;
+};
+
+struct FormalParam {
+    int offset;
+    int referencia; // 1 = ref, 0 = copia/valor
+};
+
 typedef struct SimpleVar* SimpleVar;
 
 union Cat{
     struct SimpleVar simpleVar;
+    struct Procedure procedure;
+    struct FormalParam FormalParam;
     /*
-    procedure;
     function;
     label;
     */
@@ -43,6 +54,7 @@ typedef struct Stack *Stack;
 enum CATEGORIES { SIMPLEVAR };
 
 int searchST(ST st, const char *symb);
+int pushST(ST st, Element elem);
 int insertST(ST st, const char* symb, int lexlev, int cat, Cat value);
 void deleteST(ST st);
 ST initST();
