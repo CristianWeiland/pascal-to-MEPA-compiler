@@ -66,6 +66,16 @@ Cat initSimpleVar(int offset) {
     return st;
 }
 
+Element createElement() {
+    Element elem = (Element) malloc(sizeof(struct Element));
+    elem->value = (Cat) malloc(sizeof(union Cat));
+}
+
+Procedure createProcedure() {
+    Procedure proc = (Procedure) malloc (sizeof(struct Procedure));
+    proc->label = (char *) malloc(sizeof(char) * MAX_SYMB_LEN);
+}
+
 char* nextLabel() {
     char* str;
     str = (char *) malloc(sizeof(char) * LABEL_LENGTH);

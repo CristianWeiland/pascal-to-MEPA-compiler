@@ -83,11 +83,11 @@ tipo: INTEGER;
 
 lista_id_var: lista_id_var VIRGULA IDENT {
     Cat cat = initSimpleVar(offset);
-    insertST(symbolTable, token, lexLevel, SIMPLEVAR, cat);
+    insertST(symbolTable, token, lexLevel, CAT_SIMPLEVAR, cat);
     ++offset;
 } | IDENT {
     Cat cat = initSimpleVar(offset);
-    insertST(symbolTable, token, lexLevel, SIMPLEVAR, cat);
+    insertST(symbolTable, token, lexLevel, CAT_SIMPLEVAR, cat);
     ++offset;
 };
 
@@ -95,7 +95,7 @@ lista_idents: lista_idents VIRGULA IDENT | IDENT;
 
 parte_declara_subrotina: parte_declara_subrotina parte_declara_procedimento | ;
 
-parte_declara_procedimento: PROCEDURE {
+parte_declara_procedimento: PROCEDURE IDENT {
     // ENPR lex_level do procedimento.
     char dsvs[10];
     // Gera rotulo de saida.
@@ -106,23 +106,32 @@ parte_declara_procedimento: PROCEDURE {
 
     char enpr[8];
     char *label_proc = nextLabel();
-    ++lex_level;
-    sprintf(enpr, "ENPR %d", lex_level);
-    // FALTA GUARDAR NA TS O LABEL DO PROCEDIMENTO!
-    // r01: ENPR 1.
+    ++lexLevel;
+    sprintf(enpr, "ENPR %d", lexLevel);
+    // r01: ENPR 1 --> Isso ja gera o rotulo pra entrar no procedimento!
     geraCodigo(label_proc, enpr);
 
-    procedure = (Element) malloc(sizeof(struct Element));
-    procedure.lexLevel = lex_level;
-    proc = (Procedure) malloc(sizeof(struct Procedure));
-    proc.n_params = 0;
-    procedure.value = proc;
-    strncpy(proc.label, label_proc, MAX_SYMB_LEN);
+    //procedure = (Element) malloc(sizeof(struct Element));
+    procedure = createElement();
+
+    procedure->lexLevel = lexLevel;
+    //proc = (Procedure) malloc(sizeof(struct Procedure));
+    proc = createProcedure();
+    proc->n_params = 0;
+    procedure->value->procedure = proc;
+
+    // Insere o label de entrada do proc na Tabela de Simbolos.
+    strncpy(proc->label, label_proc, MAX_SYMB_LEN);
+    // Insere o procedimento na tabela de simbolos.
     pushST(symbolTable, procedure);
-} ident {
-    strncpy(procedure.symbol, token, MAX_SYMB_LEN);
-} parte_params_formais PONTO_E_VIRGULA bloco {
-    --lex_level;
+    // Adiciona o nome do proc na Tabela de Simbolos.
+    strncpy(procedure->symbol, token, MAX_SYMB_LEN);
+} parte_params_formais PONTO_E_VIRGULA bloco PONTO_E_VIRGULA {
+    // REMOVE TUDAS PIZZARIA DA TABELA DE SIMBOLOS E CARREGA O PROC CERTO
+    char rtpr[12];
+    sprintf(rtpr, "RTPR %d,%d", procedure->lexLevel, procedure->value->procedure->n_params);
+    geraCodigo(NULL, rtpr);
+    --lexLevel;
     // Cria rotulo de saida.
     geraCodigo(pop(labels), "NADA");
 };
@@ -133,14 +142,14 @@ params_formais: params_formais PONTO_E_VIRGULA param | param;
 
 param: lista_args DOIS_PONTOS tipo;
 
-lista_args: lista_args VIRGULA ident {
-    proc.n_params++;
+lista_args: lista_args VIRGULA IDENT {
+    /*proc.n_params++;
     FormalParam fp = (FormalParam) malloc(sizeof(struct FormalParam));
-    fp.offset = ??;
+    //fp.offset = ??;
     fp.referencia = referencia;
-    insertST(symbolTable, token, lex_level, 0, fp);
-} | ident {
-    proc.n_params++;
+    insertST(symbolTable, token, lex_level, 0, fp);*/
+} | IDENT {
+    proc->n_params++;
 };
 
 comando_composto: T_BEGIN comandos T_END;

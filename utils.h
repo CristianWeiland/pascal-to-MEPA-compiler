@@ -21,10 +21,12 @@ struct FormalParam {
 };
 
 typedef struct SimpleVar* SimpleVar;
+typedef struct Procedure* Procedure;
+typedef struct FormalParam* FormalParam;
 
 union Cat{
     struct SimpleVar simpleVar;
-    struct Procedure procedure;
+    Procedure procedure;
     struct FormalParam FormalParam;
     /*
     function;
@@ -51,7 +53,7 @@ struct ST {
 typedef struct ST* ST;
 typedef struct Stack *Stack;
 
-enum CATEGORIES { SIMPLEVAR };
+enum CATEGORIES { CAT_SIMPLEVAR, CAT_PROCEDURE, CAT_FORMALPARAM, CAT_FUNCTION, CAT_LABEL };
 
 int searchST(ST st, const char *symb);
 int pushST(ST st, Element elem);
@@ -59,6 +61,8 @@ int insertST(ST st, const char* symb, int lexlev, int cat, Cat value);
 void deleteST(ST st);
 ST initST();
 Cat initSimpleVar(int offset);
+Element createElement();
+Procedure createProcedure();
 
 char* nextLabel();
 
