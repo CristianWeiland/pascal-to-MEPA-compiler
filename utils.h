@@ -27,7 +27,7 @@ typedef struct FormalParam* FormalParam;
 union Cat{
     struct SimpleVar simpleVar;
     Procedure procedure;
-    struct FormalParam FormalParam;
+    FormalParam formalParam;
     /*
     function;
     label;
@@ -58,11 +58,16 @@ enum CATEGORIES { CAT_SIMPLEVAR, CAT_PROCEDURE, CAT_FORMALPARAM, CAT_FUNCTION, C
 int searchST(ST st, const char *symb);
 int pushST(ST st, Element elem);
 int insertST(ST st, const char* symb, int lexlev, int cat, Cat value);
+void fixOffsetST(ST st); // Talvez precisa receber o lex level?
 void deleteST(ST st);
 ST initST();
-Cat initSimpleVar(int offset);
+void debug(ST st);
+void printElement(Element e);
+
 Element createElement();
-Procedure createProcedure();
+Cat initSimpleVar(int offset);
+Cat createProcedure();
+Cat createFormalParam();
 
 char* nextLabel();
 

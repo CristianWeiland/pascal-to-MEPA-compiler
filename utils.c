@@ -51,29 +51,109 @@ int searchST(ST st, const char *symb) {
     return -1;
 }
 
+void fixOffsetST(ST st) {
+    //debug(st);
+    // Enquanto o proximo elemento da ST nao for uma procedure/function, ignora.
+    int i = st->head; // To acreditando que st->head aponta pro ultimo elemento existente.
+    int offset = -4;
+    Element elem = st->elems[i];
+    while( elem->cat != CAT_PROCEDURE && elem->cat != CAT_FUNCTION ) {
+        if(elem->cat != CAT_FORMALPARAM) {
+            puts("Deveria ser formalParam.");
+            --i;
+            continue;
+        }
+        elem = st->elems[i];
+        elem->value->formalParam->offset = offset;
+        --offset;
+        --i;
+        elem = st->elems[i];
+    }
+/*    Element elem = st->elems[i];
+    while( elem->cat != CAT_PROCEDURE && elem->cat != CAT_FUNCTION ) {
+        --i;
+        elem = st->elems[i];
+    }
+    // Se eu pegar st->elems[i] agora ele vai conter a procedure. Quero o proximo elemento.
+    ++i;
+
+    int offset = -4;
+
+    printf("Achei i = %d e head = %d.\n", i, st->head);
+
+    while( i <= st->head ) {
+        if(elem->cat != CAT_FORMALPARAM) {
+            puts("Deveria ser formalParam.");
+            ++i;
+            continue;
+        }
+        elem = st->elems[i];
+        elem->value->formalParam->offset = offset;
+        --offset;
+        // Neste momento, elem contém o primeiro parametro (se contiver algum).
+
+        ++i;
+    }
+*/
+    //debug(st);
+}
+
 void debug(ST st) {
     int i;
-    printf("Head: %d { ", st->head);
+    printf("Head: %d {\n", st->head);
     for(i = 0; i <= st->head; ++i){
-        printf("(%s, %d, %d), ", st->elems[i]->symbol, st->elems[i]->lexLevel, st->elems[i]->cat);
+        //printf("(%s, %d, %d), ", st->elems[i]->symbol, st->elems[i]->lexLevel, st->elems[i]->cat);
+        printElement(st->elems[i]);
     }
     puts("}");
 }
 
+void printElement(Element e) {
+    char cat[5];
+    cat[0] = '\0';
+    if(e->cat == CAT_SIMPLEVAR) sprintf(cat, "SVar");
+    else if(e->cat == CAT_PROCEDURE) sprintf(cat, "Proc");
+    else if(e->cat == CAT_FUNCTION) sprintf(cat, "Func");
+    else if(e->cat == CAT_FORMALPARAM) sprintf(cat, "FPar");
+    printf("    ( N: '%s', LL: %d, CAT: %s", e->symbol, e->lexLevel, cat);
+    if(e->cat == CAT_SIMPLEVAR) {
+        printf(", OFF: %d", e->value->simpleVar.offset);
+    } else if(e->cat == CAT_PROCEDURE) {
+        printf(", PAR: %d", e->value->procedure->n_params);
+        // Se label tiver nulo, nao tenta imprimir, vai dar segFault.
+        if(e->value->procedure->label) {
+            printf(", LAB: '%s'", e->value->procedure->label);
+        }
+    } else if(e->cat == CAT_FORMALPARAM) {
+        printf(", OFF: %d, REF: %d", e->value->formalParam->offset, e->value->formalParam->referencia);
+    }
+
+    printf(" ),\n");
+}
+
 Cat initSimpleVar(int offset) {
-    Cat st = (Cat) malloc(sizeof(union Cat));
-    st->simpleVar.offset = offset;
-    return st;
+    Cat sv = (Cat) malloc(sizeof(union Cat));
+    sv->simpleVar.offset = offset;
+    return sv;
 }
 
 Element createElement() {
     Element elem = (Element) malloc(sizeof(struct Element));
     elem->value = (Cat) malloc(sizeof(union Cat));
+    return elem;
 }
 
-Procedure createProcedure() {
-    Procedure proc = (Procedure) malloc (sizeof(struct Procedure));
-    proc->label = (char *) malloc(sizeof(char) * MAX_SYMB_LEN);
+Cat createProcedure() {
+    Cat proc = (Cat) malloc(sizeof(union Cat));
+    proc->procedure = malloc(sizeof(struct Procedure));
+    proc->procedure->label = (char *) malloc(sizeof(char) * MAX_SYMB_LEN);
+    return proc;
+}
+
+Cat createFormalParam() {
+    Cat fp = (Cat) malloc(sizeof(union Cat));
+    fp->formalParam = malloc(sizeof(struct FormalParam));
+    return fp;
 }
 
 char* nextLabel() {

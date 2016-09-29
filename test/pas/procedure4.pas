@@ -1,4 +1,4 @@
-(*Procedure com 2 params por valor com sobrescrita em variavel*)
+(* Procedure com 2 params por valor com sobrescrita em variavel *)
 program p(input, output);
 var a, b: integer;
 procedure p(a, c: integer);

@@ -24,6 +24,8 @@ Element procedure;
 Procedure proc;
 int referencia = 0;
 
+Cat category;
+
 %}
 
 %token PROGRAM ABRE_PARENTESES FECHA_PARENTESES
@@ -113,10 +115,12 @@ parte_declara_procedimento: PROCEDURE IDENT {
 
     //procedure = (Element) malloc(sizeof(struct Element));
     procedure = createElement();
-
+    procedure->cat = CAT_PROCEDURE;
     procedure->lexLevel = lexLevel;
     //proc = (Procedure) malloc(sizeof(struct Procedure));
-    proc = createProcedure();
+    category = createProcedure();
+    proc = category->procedure;
+    //proc = createProcedure();
     proc->n_params = 0;
     procedure->value->procedure = proc;
 
@@ -131,25 +135,47 @@ parte_declara_procedimento: PROCEDURE IDENT {
     char rtpr[12];
     sprintf(rtpr, "RTPR %d,%d", procedure->lexLevel, procedure->value->procedure->n_params);
     geraCodigo(NULL, rtpr);
+    // PRECISA TIRAR DA TABELA DE SIMBOLOS AS VARIAVEIS, PROCEDURES E FUNCTIONS LOCAIS
+    // limpaST(lexLevel);
     --lexLevel;
     // Cria rotulo de saida.
     geraCodigo(pop(labels), "NADA");
 };
 
-parte_params_formais: ABRE_PARENTESES params_formais FECHA_PARENTESES PONTO_E_VIRGULA | ;
+parte_params_formais: ABRE_PARENTESES params_formais FECHA_PARENTESES {
+    fixOffsetST(symbolTable);
+} | ;
 
 params_formais: params_formais PONTO_E_VIRGULA param | param;
 
-param: lista_args DOIS_PONTOS tipo;
+param: lista_args DOIS_PONTOS tipo {
+    // Atualiza o tipo dos parametros.
+};
 
 lista_args: lista_args VIRGULA IDENT {
-    /*proc.n_params++;
-    FormalParam fp = (FormalParam) malloc(sizeof(struct FormalParam));
-    //fp.offset = ??;
-    fp.referencia = referencia;
-    insertST(symbolTable, token, lex_level, 0, fp);*/
+    // Obs: Lista_args ainda nao aceita passagem por referencia, só por cópia.
+    // Achei algo tipo "a, b: integer", aqui eu to tratando o 'b', por exemplo.
+    // Token == 'b'.
+    proc->n_params++;
+
+    /* EXATAMENTE IGUAL A ALI EMBAIXO! */
+    //FormalParam fp = (FormalParam) malloc(sizeof(struct FormalParam));
+    category = createFormalParam();
+    FormalParam fp = category->formalParam;
+    fp->offset = 1000000; // Aqui ainda nao sei offset. Tenho que arrumar na TS depois.
+                         // To setando em 1000000 porque se eu ver isso impresso, sei que deu ruim.
+    fp->referencia = referencia; // Por enquanto referencia eh sempre 0, portanto, eh sempre valor.
+    insertST(symbolTable, token, lexLevel, CAT_FORMALPARAM, category);
 } | IDENT {
     proc->n_params++;
+
+    /* EXATAMENTE IGUAL A ALI EMCIMA! */
+    category = createFormalParam();
+    FormalParam fp = category->formalParam;
+    fp->offset = 1000000; // Aqui ainda nao sei offset. Tenho que arrumar na TS depois.
+                         // To setando em 1000000 porque se eu ver isso impresso, sei que deu ruim.
+    fp->referencia = referencia; // Por enquanto referencia eh sempre 0, portanto, eh sempre valor.
+    insertST(symbolTable, token, lexLevel, CAT_FORMALPARAM, category);
 };
 
 comando_composto: T_BEGIN comandos T_END;
@@ -165,7 +191,12 @@ comando_sem_rotulo: atribuicao | comando_repetitivo | comando_condicional;
 
 atribuicao: variavel ATRIBUICAO expr {
     char armz[13]; // Da ateh 3 digitos de inteiros
-    sprintf(armz, "ARMZ %d,%d", atribuido->lexLevel, atribuido->value->simpleVar.offset);
+    if(atribuido->cat == CAT_SIMPLEVAR)
+        sprintf(armz, "ARMZ %d,%d", atribuido->lexLevel, atribuido->value->simpleVar.offset);
+    else if(atribuido->cat == CAT_FORMALPARAM)
+        sprintf(armz, "ARMZ %d,%d", atribuido->lexLevel, atribuido->value->formalParam->offset);
+    else
+        puts("Tentando atribuir pra algo que nao eh FormalParam nem SimpleVar...");
     geraCodigo(NULL, armz);
     // Verifica se os tipos sao iguais. NAO FOI FEITO AINDA.
 };

@@ -1,4 +1,4 @@
-(*Procedure com 1 param por valor sem sobrescrita em variavel e com outro procedure sem parametro*)
+(* Procedure com 1 param por valor sem sobrescrita em variavel e com outro procedure sem parametro *)
 program p(input, output);
 var a, b: integer;
 procedure p(c: integer);
