@@ -11,7 +11,7 @@
 #include "compilador.h"
 #include "utils.h"
 
-int offset, lexLevel = 0;
+int offset, lexLevel, n_params_reais = 0;
 // Obs: Nao da pra inicializar coisas aqui!
 ST symbolTable;
 Stack labels;
@@ -187,12 +187,12 @@ comando: rotulo comando_sem_rotulo;
 /* Ou 'numero DOIS_PONTOS' ou nada. Suponho que, se nao tem nada, eu deixo em branco soh. */
 rotulo: NUMERO DOIS_PONTOS | ;
 
-comando_sem_rotulo: atribuicao | comando_repetitivo | comando_condicional;
+comando_sem_rotulo: atribuicao | comando_repetitivo | comando_condicional | chamada_subrotina;
 
 atribuicao: variavel ATRIBUICAO expr {
     char armz[13]; // Da ateh 3 digitos de inteiros
     if(atribuido->cat == CAT_SIMPLEVAR)
-        sprintf(armz, "ARMZ %d,%d", atribuido->lexLevel, atribuido->value->simpleVar.offset);
+        sprintf(armz, "ARMZ %d,%d", atribuido->lexLevel, atribuido->value->simpleVar->offset);
     else if(atribuido->cat == CAT_FORMALPARAM)
         sprintf(armz, "ARMZ %d,%d", atribuido->lexLevel, atribuido->value->formalParam->offset);
     else
@@ -203,10 +203,74 @@ atribuicao: variavel ATRIBUICAO expr {
 
 variavel: IDENT {
     int i;
+    puts(token);
     if((i = searchST(symbolTable, token)) < 0) {
         eSymbolNotFound(token);
     }
     atribuido = symbolTable->elems[i];
+};
+
+chamada_subrotina: subrotina params_reais {
+    // Checa se o numero de parametros confere.
+    int n_params = -1;
+    char *label;
+    if(procedure->cat == CAT_PROCEDURE) {
+        n_params = procedure->value->procedure->n_params;
+        label = procedure->value->procedure->label;
+    }/* else { // Function
+        n_params = procedure->value->function->n_params;
+        label = procedure->value->function->label;
+    }*/
+    if(n_params_reais != n_params) {
+        char err[100];
+        sprintf(err, "Chamada de subrotina com numero errado de parametros: %d usados, %d esperados.", n_params_reais, n_params);
+        yyerror(err);
+    }
+
+    // Parametros corretos e empilhados, chama funcao.
+    char chpr[13];
+    sprintf(chpr, "CHPR %s,%d", label, lexLevel);
+    geraCodigo(NULL, chpr);
+};
+
+subrotina: IDENT {
+    printf("%saaaa\n", token);
+    int i = searchST(symbolTable, token);
+    if(i < 0) {
+        eSymbolNotFound(token);
+    }
+    procedure = symbolTable->elems[i];
+    if(procedure->cat != CAT_PROCEDURE && procedure->cat != CAT_FUNCTION) {
+        yyerror("Chamada de subrotina para um identificador que nao eh funcao nem procedimento.");
+        exit(1);
+    }
+    n_params_reais = 0;
+};
+
+params_reais: ABRE_PARENTESES lista_params_reais FECHA_PARENTESES | ;
+
+lista_params_reais: lista_params_reais VIRGULA param_real | param_real;
+
+param_real: IDENT {
+    int i = searchST(symbolTable, token);
+    if(i < 0) {
+        eSymbolNotFound(token);
+    }
+    Element elem = symbolTable->elems[i];
+    if(elem->cat != CAT_SIMPLEVAR) {
+        yyerror("Parametro que nao eh simplevar usado na chamada de subrotina.");
+    }
+    ++n_params_reais;
+    char crvl[13];
+    sprintf(crvl, "CRVL %d,%d", elem->lexLevel, elem->value->simpleVar->offset);
+    geraCodigo(NULL, crvl);
+    // Falta ainda ver como passar direito (valor ou referencia).
+} | NUMERO {
+    // Se for passagem por referencia --> erro.
+    ++n_params_reais;
+    char crct[13];
+    sprintf(crct, "CRCT %s", token);
+    geraCodigo(NULL, crct);
 };
 
 expressao: expr relacao expr {
@@ -288,7 +352,7 @@ f: NUMERO {
     }
     Element elem = symbolTable->elems[i];
     char crvl[13]; // Da ateh 3 digitos de inteiros
-    sprintf(crvl, "CRVL %d,%d", elem->lexLevel, elem->value->simpleVar.offset);
+    sprintf(crvl, "CRVL %d,%d", elem->lexLevel, elem->value->simpleVar->offset);
     geraCodigo(NULL, crvl);
 
     char type[] = "integer";

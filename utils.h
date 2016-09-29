@@ -25,7 +25,7 @@ typedef struct Procedure* Procedure;
 typedef struct FormalParam* FormalParam;
 
 union Cat{
-    struct SimpleVar simpleVar;
+    SimpleVar simpleVar;
     Procedure procedure;
     FormalParam formalParam;
     /*

@@ -117,7 +117,7 @@ void printElement(Element e) {
     else if(e->cat == CAT_FORMALPARAM) sprintf(cat, "FPar");
     printf("    ( N: '%s', LL: %d, CAT: %s", e->symbol, e->lexLevel, cat);
     if(e->cat == CAT_SIMPLEVAR) {
-        printf(", OFF: %d", e->value->simpleVar.offset);
+        printf(", OFF: %d", e->value->simpleVar->offset);
     } else if(e->cat == CAT_PROCEDURE) {
         printf(", PAR: %d", e->value->procedure->n_params);
         // Se label tiver nulo, nao tenta imprimir, vai dar segFault.
@@ -133,7 +133,8 @@ void printElement(Element e) {
 
 Cat initSimpleVar(int offset) {
     Cat sv = (Cat) malloc(sizeof(union Cat));
-    sv->simpleVar.offset = offset;
+    sv->simpleVar = malloc(sizeof(struct SimpleVar));
+    sv->simpleVar->offset = offset;
     return sv;
 }
 
