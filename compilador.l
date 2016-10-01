@@ -187,7 +187,7 @@ integer {
 
 
 
-:= { simbolo = simb_atribuicao;
+\:\= { simbolo = simb_atribuicao;
           strncpy (token, yytext, TAM_TOKEN);
           IMPRIME(" atribuicao  ");
           return ATRIBUICAO;
