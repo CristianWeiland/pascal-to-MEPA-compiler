@@ -58,6 +58,7 @@ enum CATEGORIES { CAT_SIMPLEVAR, CAT_PROCEDURE, CAT_FORMALPARAM, CAT_FUNCTION, C
 int searchST(ST st, const char *symb);
 int pushST(ST st, Element elem);
 int insertST(ST st, const char* symb, int lexlev, int cat, Cat value);
+int removeLocalSymb(ST st, int lexLevel);
 void fixOffsetST(ST st); // Talvez precisa receber o lex level?
 void deleteST(ST st);
 ST initST();

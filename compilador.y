@@ -23,6 +23,7 @@ char Operacao[5];
 Element procedure;
 Procedure proc;
 int referencia = 0;
+Stack procSt;
 
 Cat category;
 
@@ -52,25 +53,27 @@ programa: {
     ExprE = initStack();
     ExprT = initStack();
     ExprF = initStack();
+    procSt = initStack();
     atribuido = NULL;
     geraCodigo (NULL, "INPP");
 } PROGRAM IDENT ABRE_PARENTESES lista_idents FECHA_PARENTESES PONTO_E_VIRGULA bloco PONTO {
-    char dmem[10];
-    sprintf(dmem, "DMEM %d", offset);
-    geraCodigo(NULL, dmem);
     geraCodigo (NULL, "PARA");
     deleteST(symbolTable);
     deleteStack(labels);
     deleteStack(ExprE);
     deleteStack(ExprT);
     deleteStack(ExprF);
+    deleteStack(procSt);
 };
 
-bloco:
-    parte_declara_vars
-    parte_declara_subrotina
-    comando_composto
-;
+bloco: parte_declara_vars parte_declara_subrotina comando_composto {
+    int i = removeLocalSymb(symbolTable, lexLevel);
+    if(i > 0) {
+        char dmem[10];
+        sprintf(dmem, "DMEM %d", i);
+        geraCodigo(NULL, dmem);
+    }
+};
 
 parte_declara_vars: {
     offset = 0;
@@ -131,11 +134,13 @@ parte_declara_procedimento: PROCEDURE IDENT {
     strncpy(proc->label, label_proc, MAX_SYMB_LEN);
     // Insere o procedimento na tabela de simbolos.
     pushST(symbolTable, procedure);
+    push(procSt, procedure);
     // Adiciona o nome do proc na Tabela de Simbolos.
     strncpy(procedure->symbol, token, MAX_SYMB_LEN);
 } parte_params_formais PONTO_E_VIRGULA bloco PONTO_E_VIRGULA {
     // REMOVE TUDAS PIZZARIA DA TABELA DE SIMBOLOS E CARREGA O PROC CERTO
     char rtpr[12];
+    procedure = (Element) pop(procSt);
     sprintf(rtpr, "RTPR %d,%d", procedure->lexLevel, procedure->value->procedure->n_params);
     geraCodigo(NULL, rtpr);
     // PRECISA TIRAR DA TABELA DE SIMBOLOS AS VARIAVEIS, PROCEDURES E FUNCTIONS LOCAIS
@@ -190,13 +195,25 @@ comando: rotulo comando_sem_rotulo;
 /* Ou 'numero DOIS_PONTOS' ou nada. Suponho que, se nao tem nada, eu deixo em branco soh. */
 rotulo: NUMERO DOIS_PONTOS | ;
 
-comando_sem_rotulo: {
-    //printf("A=%s\n", token);
-} atribuicao | comando_repetitivo | comando_condicional | {
-    //printf("S = %s\n", token);
-} chamada_subrotina;
+comando_sem_rotulo: atrib_ou_csr | comando_repetitivo | comando_condicional;
 
-atribuicao: variavel ATRIBUICAO expr {
+atrib_ou_csr: IDENT {
+    int i;
+    if((i = searchST(symbolTable, token)) < 0) {
+        eSymbolNotFound(token);
+    }
+    atribuido = symbolTable->elems[i];
+    procedure = symbolTable->elems[i];
+    /*if(procedure->cat != CAT_PROCEDURE && procedure->cat != CAT_FUNCTION) {
+        yyerror("Chamada de subrotina para um identificador que nao eh funcao nem procedimento.");
+        exit(1);
+    }*/
+    //n_params_reais = 0;
+} atrib_ou_csr2;
+
+atrib_ou_csr2: atribuicao | chamada_subrotina;
+
+atribuicao: ATRIBUICAO expr {
     //printf("Atribuicao token %s\n", token);
     char armz[13]; // Da ateh 3 digitos de inteiros
     if(atribuido->cat == CAT_SIMPLEVAR)
@@ -209,16 +226,13 @@ atribuicao: variavel ATRIBUICAO expr {
     // Verifica se os tipos sao iguais. NAO FOI FEITO AINDA.
 };
 
-variavel: IDENT {
-    //printf("Variavel token %s\n", token);
-    int i;
-    if((i = searchST(symbolTable, token)) < 0) {
-        eSymbolNotFound(token);
+chamada_subrotina: {
+    if(procedure->cat != CAT_PROCEDURE && procedure->cat != CAT_FUNCTION) {
+        yyerror("Chamada de subrotina para um identificador que nao eh funcao nem procedimento.");
+        exit(1);
     }
-    atribuido = symbolTable->elems[i];
-};
-
-chamada_subrotina: subrotina params_reais {
+    n_params_reais = 0;
+} params_reais {
     // Checa se o numero de parametros confere.
     //printf("Entrei na subrotina com o token %s.\n", token);
     int n_params = -1;
@@ -240,20 +254,6 @@ chamada_subrotina: subrotina params_reais {
     char chpr[13];
     sprintf(chpr, "CHPR %s,%d", label, lexLevel);
     geraCodigo(NULL, chpr);
-} | %prec LOWER_THAN_ATRIB;
-
-subrotina: IDENT {
-    printf("%saaaa\n", token);
-    int i = searchST(symbolTable, token);
-    if(i < 0) {
-        eSymbolNotFound(token);
-    }
-    procedure = symbolTable->elems[i];
-    if(procedure->cat != CAT_PROCEDURE && procedure->cat != CAT_FUNCTION) {
-        yyerror("Chamada de subrotina para um identificador que nao eh funcao nem procedimento.");
-        exit(1);
-    }
-    n_params_reais = 0;
 };
 
 params_reais: ABRE_PARENTESES lista_params_reais FECHA_PARENTESES | ;

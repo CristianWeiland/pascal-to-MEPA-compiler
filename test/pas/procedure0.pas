@@ -7,5 +7,6 @@ procedure p;
     end;
 begin
     a := 2;
+    p;
     b := 1
 end.

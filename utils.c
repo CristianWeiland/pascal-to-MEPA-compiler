@@ -51,6 +51,25 @@ int searchST(ST st, const char *symb) {
     return -1;
 }
 
+int removeLocalSymb(ST st, int lexLevel) {
+    int removed = 0;
+    int i = st->head;
+    Element elem = st->elems[i];
+    while( !(elem->lexLevel == lexLevel && (elem->cat == CAT_PROCEDURE || elem->cat == CAT_FUNCTION)) && i >= 0 ) {
+        if(elem->cat == CAT_SIMPLEVAR) {
+            ++removed;
+        }
+        free(elem);
+        --i;
+        if(i > -1) {
+            elem = st->elems[i];
+        }
+    }
+    // Elementos freeados e agora head movida.
+    st->head = i;
+    return removed;
+}
+
 void fixOffsetST(ST st) {
     //debug(st);
     // Enquanto o proximo elemento da ST nao for uma procedure/function, ignora.
