@@ -5,10 +5,12 @@ r001: ENPR 1
      DSVS r002
 r003: ENPR 2
      AMEM 1
+     CRCT 1
+     ARMZ 2,-4
      CRCT 2
      ARMZ 2,0
      DMEM 1
-     RTPR 2,0
+     RTPR 2,1
 r002: NADA
      CRCT 2
      ARMZ 1,-4

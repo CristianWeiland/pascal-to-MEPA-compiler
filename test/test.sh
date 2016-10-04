@@ -25,7 +25,9 @@ done
 rm test.out
 rm MEPA
 
+
 if [[ $r -ne 0 ]]; then
+    echo ""
     echo "Falhou em $r testes"
 fi
 exit $r

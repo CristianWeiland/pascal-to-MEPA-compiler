@@ -1,8 +1,7 @@
      INPP
      AMEM 2
      DSVS r000
-r001: NADA
-     ENPR 1
+r001: ENPR 1
      CRCT 2
      ARMZ 1,-4
      RTPR 1,2
