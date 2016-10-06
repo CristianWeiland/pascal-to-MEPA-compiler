@@ -224,6 +224,14 @@ void debugStack(Stack stack, const char* name) {
     if(stack->head >= 0)
         printf("%s", (char*) stack->elems[stack->head]);
     printf(" }\n");
+    puts("");
+    printf("%s: { ", name);
+    for(i = 0; i < stack->head; ++i){
+        printf("%p,", stack->elems[i]);
+    }
+    if(stack->head >= 0)
+        printf("%p", stack->elems[stack->head]);
+    printf(" }\n");
 }
 /*
 int main() {

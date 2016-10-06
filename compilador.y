@@ -19,6 +19,9 @@ Stack ExprE, ExprT, ExprF;
 Element atribuido;
 char Operacao[5];
 
+const char* type_integer = "int";
+const char* type_boolean = "bool";
+
 /* Coisas de procedures */
 Element procedure;
 Procedure proc;
@@ -307,41 +310,35 @@ relacao: MAIOR {
 
 expr: expr MAIS t {
     geraCodigo(NULL, "SOMA");
-    checa_tipo(ExprT, ExprE, "integer");
+    checa_tipo(ExprT, ExprE, type_integer);
 
-    char type[] = "integer";
-    push(ExprE, (void*)type);
+    push(ExprE, (void*)type_integer);
 } | expr OR t {
     geraCodigo(NULL, "CONJ");
-    checa_tipo(ExprT, ExprE, "boolean");
+    checa_tipo(ExprT, ExprE, type_boolean);
 
-    char type[] = "boolean";
-    push(ExprE, (void*)type);
+    push(ExprE, (void*)type_boolean);
 } | expr MENOS t {
     geraCodigo(NULL, "SUBT");
-    checa_tipo(ExprT, ExprE, "integer");
+    checa_tipo(ExprT, ExprE, type_integer);
 
-    char type[] = "integer";
-    push(ExprE, (void*)type);
+    push(ExprE, (void*)type_integer);
 } | t {
     push(ExprE, pop(ExprT));
 };
 
 t: t ASTERISCO f {
     geraCodigo(NULL, "MULT");
-    checa_tipo(ExprF, ExprT, "integer");
-    char type[] = "integer";
-    push(ExprT, (void*)type);
+    checa_tipo(ExprF, ExprT, type_integer);
+    push(ExprT, (void*)type_integer);
 } | t AND f {
     geraCodigo(NULL, "DISJ");
-    checa_tipo(ExprF, ExprT, "boolean");
-    char type[] = "boolean";
-    push(ExprT, (void*)type);
+    checa_tipo(ExprF, ExprT, type_boolean);
+    push(ExprT, (void*)type_boolean);
 } | t BARRA f {
     geraCodigo(NULL, "DIVI");
-    checa_tipo(ExprF, ExprT, "integer");
-    char type[] = "integer";
-    push(ExprT, (void*)type);
+    checa_tipo(ExprF, ExprT, type_integer);
+    push(ExprT, (void*)type_integer);
 } | f {
     // Joga o tipo pra cima.
     push(ExprT, pop(ExprF));
@@ -352,8 +349,7 @@ f: NUMERO {
     sprintf(crct, "CRCT %s", token);
     geraCodigo(NULL, crct);
 
-    char type[] = "integer";
-    push(ExprF, (void*)type);
+    push(ExprF, (void*)type_integer);
 } | IDENT {
     int i = searchST(symbolTable, token);
     if(i < 0){
@@ -364,8 +360,7 @@ f: NUMERO {
     sprintf(crvl, "CRVL %d,%d", elem->lexLevel, elem->value->simpleVar->offset);
     geraCodigo(NULL, crvl);
 
-    char type[] = "integer";
-    push(ExprF, (void*)type);
+    push(ExprF, (void*)type_integer);
 };
 
 cmd_simples_ou_composto: comando_composto | comando_sem_rotulo;
