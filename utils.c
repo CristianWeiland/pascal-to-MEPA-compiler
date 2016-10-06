@@ -214,6 +214,17 @@ void* pop(Stack stack) {
 void deleteStack(Stack stack) {
     free(stack->elems);
 }
+
+void debugStack(Stack stack, const char* name) {
+    int i = 0;
+    printf("%s: { ", name);
+    for(i = 0; i < stack->head; ++i){
+        printf("%s,", (char*) stack->elems[i]);
+    }
+    if(stack->head >= 0)
+        printf("%s", (char*) stack->elems[stack->head]);
+    printf(" }\n");
+}
 /*
 int main() {
     ST st = initST();
