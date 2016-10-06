@@ -156,11 +156,13 @@ parte_params_formais: ABRE_PARENTESES params_formais FECHA_PARENTESES {
 
 params_formais: params_formais PONTO_E_VIRGULA param | param;
 
-param: lista_args DOIS_PONTOS tipo {
-    // Atualiza o tipo dos parametros.
-};
+param: lista_args_copia DOIS_PONTOS tipo {
+    // Atualiza o tipo na TS.
+} | VAR lista_args_ref DOIS_PONTOS {
+    // Atualiza o tipo na TS.
+} tipo;
 
-lista_args: lista_args VIRGULA IDENT {
+lista_args_copia: lista_args_copia VIRGULA IDENT {
     // Obs: Lista_args ainda nao aceita passagem por referencia, só por cópia.
     // Achei algo tipo "a, b: integer", aqui eu to tratando o 'b', por exemplo.
     // Token == 'b'.
@@ -184,6 +186,13 @@ lista_args: lista_args VIRGULA IDENT {
                          // To setando em 1000000 porque se eu ver isso impresso, sei que deu ruim.
     fp->referencia = referencia; // Por enquanto referencia eh sempre 0, portanto, eh sempre valor.
     insertST(symbolTable, token, lexLevel, CAT_FORMALPARAM, category);
+};
+
+lista_args_ref: lista_args_ref VIRGULA IDENT {
+    proc->n_params++;
+    // Falta fazer basicamente TUDO aqui.
+} | IDENT {
+
 };
 
 comando_composto: T_BEGIN comandos T_END;
@@ -283,12 +292,18 @@ param_real: IDENT {
 };
 
 expressao: expr relacao expr {
+    // ESSES COMENTARIOS SAO IMPORTANTES!
+    // Acho que esse checa_tipo ta errado. Acho que na regra "relacao" tem que ter um pedaço de codigo que
+    // da um push em boolean e aqui soh dah um pop.
+    // Acho que tem que fazer um checa_tipo pra ver se as duas expressoes eram "integer", pq nao posso fazer (a and b) > 3!
+    // Tambem acho que nosso codigo nao aceita if(a and b)
     /* checa_tipo(ExprE, ExprE, "boolean"); */
     geraCodigo(NULL, Operacao);
-} | expr {
-    /* if(strcmp("boolean", (char *) pop(ExprE)) != 0) {
+} | expr { // Isso aceita caso exista uma var a = boolean e tenha algo tipo "if(a)".
+// Tambem aceita if(a and b). O pop deve estar certo.
+    if(strcmp("boolean", (char *) pop(ExprE)) != 0) {
         imprimeErro("Erro na verificacao de tipos.");
-    }*/
+    }
 };
 
 relacao: MAIOR {

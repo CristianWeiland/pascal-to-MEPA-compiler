@@ -1,5 +1,7 @@
 program p(input, output);
 var a: integer;
 begin
-    a := 1 and 2
+    while(1+2) do
+        a := 1;
+    a := 1 + 2
 end.
