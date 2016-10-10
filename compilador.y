@@ -25,7 +25,7 @@ const char* type_boolean = "bool";
 /* Coisas de procedures */
 Element procedure;
 Procedure proc;
-int referencia = 0;
+int formal_param_index;
 Stack procSt;
 
 Cat category;
@@ -169,33 +169,39 @@ lista_args_copia: lista_args_copia VIRGULA IDENT {
     // Obs: Lista_args ainda nao aceita passagem por referencia, só por cópia.
     // Achei algo tipo "a, b: integer", aqui eu to tratando o 'b', por exemplo.
     // Token == 'b'.
+
+    /* O que ta nesse comentario funciona, mas eh feio.
     proc->n_params++;
 
-    /* EXATAMENTE IGUAL A ALI EMBAIXO! */
     //FormalParam fp = (FormalParam) malloc(sizeof(struct FormalParam));
     category = createFormalParam();
     FormalParam fp = category->formalParam;
     fp->offset = 1000000; // Aqui ainda nao sei offset. Tenho que arrumar na TS depois.
                          // To setando em 1000000 porque se eu ver isso impresso, sei que deu ruim.
-    fp->referencia = referencia; // Por enquanto referencia eh sempre 0, portanto, eh sempre valor.
+    fp->referencia = ; // Por enquanto referencia eh sempre 0, portanto, eh sempre valor.
     insertST(symbolTable, token, lexLevel, CAT_FORMALPARAM, category);
+    */
+
+    cria_arg(&proc, symbolTable, token, lexLevel, 0);
 } | IDENT {
+    /* O que ta nesse comentario funciona, mas eh feio.
     proc->n_params++;
 
-    /* EXATAMENTE IGUAL A ALI EMCIMA! */
     category = createFormalParam();
     FormalParam fp = category->formalParam;
     fp->offset = 1000000; // Aqui ainda nao sei offset. Tenho que arrumar na TS depois.
                          // To setando em 1000000 porque se eu ver isso impresso, sei que deu ruim.
     fp->referencia = referencia; // Por enquanto referencia eh sempre 0, portanto, eh sempre valor.
     insertST(symbolTable, token, lexLevel, CAT_FORMALPARAM, category);
+    */
+
+    cria_arg(&proc, symbolTable, token, lexLevel, 0);
 };
 
 lista_args_ref: lista_args_ref VIRGULA IDENT {
-    proc->n_params++;
-    // Falta fazer basicamente TUDO aqui.
+    cria_arg(&proc, symbolTable, token, lexLevel, 1);
 } | IDENT {
-
+    cria_arg(&proc, symbolTable, token, lexLevel, 1);
 };
 
 comando_composto: T_BEGIN comandos T_END;
@@ -216,6 +222,7 @@ atrib_ou_csr: IDENT {
     }
     atribuido = symbolTable->elems[i];
     procedure = symbolTable->elems[i];
+    formal_param_index = i;
     /*if(procedure->cat != CAT_PROCEDURE && procedure->cat != CAT_FUNCTION) {
         yyerror("Chamada de subrotina para um identificador que nao eh funcao nem procedimento.");
         exit(1);
@@ -230,8 +237,10 @@ atribuicao: ATRIBUICAO expr {
     char armz[13]; // Da ateh 3 digitos de inteiros
     if(atribuido->cat == CAT_SIMPLEVAR)
         sprintf(armz, "ARMZ %d,%d", atribuido->lexLevel, atribuido->value->simpleVar->offset);
-    else if(atribuido->cat == CAT_FORMALPARAM)
+    else if(atribuido->cat == CAT_FORMALPARAM && atribuido->value->formalParam->referencia == 0) // Passado por valor
         sprintf(armz, "ARMZ %d,%d", atribuido->lexLevel, atribuido->value->formalParam->offset);
+    else if(atribuido->cat == CAT_FORMALPARAM && atribuido->value->formalParam->referencia == 1) // Passado por referencia
+        sprintf(armz, "ARMI %d,%d", atribuido->lexLevel, atribuido->value->formalParam->offset);
     else
         puts("Tentando atribuir pra algo que nao eh FormalParam nem SimpleVar...");
     geraCodigo(NULL, armz);
@@ -278,13 +287,33 @@ param_real: IDENT {
         eSymbolNotFound(token);
     }
     Element elem = symbolTable->elems[i];
-    if(elem->cat != CAT_SIMPLEVAR) {
+    if(elem->cat != CAT_SIMPLEVAR && elem->cat != CAT_FORMALPARAM) {
         yyerror("Parametro que nao eh simplevar usado na chamada de subrotina.");
     }
+
+    ++formal_param_index;
+    FormalParam fp = symbolTable->elems[formal_param_index]->value->formalParam;
+
     ++n_params_reais;
-    char crvl[13];
-    sprintf(crvl, "CRVL %d,%d", elem->lexLevel, elem->value->simpleVar->offset);
-    geraCodigo(NULL, crvl);
+
+    char cr[13], mod[5];
+
+    if(fp->referencia) { // Passagem por referencia.
+        if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia) {
+            sprintf(mod, "CRVL");
+        } else {
+            sprintf(mod, "CREN");
+        }
+    } else { // Passagem por valor.
+        if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia) {
+            sprintf(mod, "CRVI");
+        } else {
+            sprintf(mod, "CRVL");
+        }
+    }
+
+    sprintf(cr, "%s %d,%d", mod, elem->lexLevel, elem->value->simpleVar->offset);
+    geraCodigo(NULL, cr);
     // Falta ainda ver como passar direito (valor ou referencia).
 } | NUMERO {
     // Se for passagem por referencia --> erro.
@@ -295,15 +324,9 @@ param_real: IDENT {
 };
 
 expressao: expr relacao expr {
-    // ESSES COMENTARIOS SAO IMPORTANTES!
-    // Acho que esse checa_tipo ta errado. Acho que na regra "relacao" tem que ter um pedaço de codigo que
-    // da um push em boolean e aqui soh dah um pop.
-    // Acho que tem que fazer um checa_tipo pra ver se as duas expressoes eram "integer", pq nao posso fazer (a and b) > 3!
-    // Tambem acho que nosso codigo nao aceita if(a and b)
-    /* checa_tipo(ExprE, ExprE, "boolean"); */
     geraCodigo(NULL, Operacao);
 } | expr { // Isso aceita caso exista uma var a = boolean e tenha algo tipo "if(a)".
-// Tambem aceita if(a and b). O pop deve estar certo.
+    // Tambem aceita if(a and b). O pop deve estar certo.
     if(strcmp("boolean", (char *) pop(ExprE)) != 0) {
         imprimeErro("Erro na verificacao de tipos.");
     }
@@ -372,7 +395,15 @@ f: NUMERO {
     }
     Element elem = symbolTable->elems[i];
     char crvl[13]; // Da ateh 3 digitos de inteiros
-    sprintf(crvl, "CRVL %d,%d", elem->lexLevel, elem->value->simpleVar->offset);
+
+    if(elem->cat == CAT_SIMPLEVAR)
+        sprintf(crvl, "CRVL %d,%d", elem->lexLevel, elem->value->simpleVar->offset);
+    else if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia == 0) // Passado por valor
+        sprintf(crvl, "CRVL %d,%d", elem->lexLevel, elem->value->formalParam->offset);
+    else if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia == 1) // Passado por referencia
+        sprintf(crvl, "CRVI %d,%d", elem->lexLevel, elem->value->formalParam->offset);
+    else
+        puts("Tentando carregar uma variavel que nao eh FormalParam nem SimpleVar...");
     geraCodigo(NULL, crvl);
 
     push(ExprF, (void*)type_integer);
@@ -471,4 +502,15 @@ void checa_tipo(Stack F, Stack T, const char* expected) {
     if(strcmp(x, expected) != 0 || strcmp(y, expected) != 0) {
         imprimeErro("Erro na verificacao de tipos.");
     }
+}
+
+void cria_arg(Procedure *proc, ST st, char *token, int lexLevel, int ref) {
+    (*proc)->n_params++;
+
+    Cat cat = createFormalParam();
+    FormalParam fp = cat->formalParam;
+    fp->offset = 1000000; // Aqui ainda nao sei offset. Tenho que arrumar na TS depois.
+                         // To setando em 1000000 porque se eu ver isso impresso, sei que deu ruim.
+    fp->referencia = ref; // Por enquanto referencia eh sempre 0, portanto, eh sempre valor.
+    insertST(st, token, lexLevel, CAT_FORMALPARAM, cat);
 }

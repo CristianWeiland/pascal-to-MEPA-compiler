@@ -32,6 +32,7 @@ typedef enum simbolos {
 
 void yyerror (char* msg);
 void checa_tipo(Stack F, Stack T, const char* expected);
+void cria_arg(Procedure *proc, ST st, char *token, int lexLevel, int ref);
 
 /* -------------------------------------------------------------------
  * variáveis globais
