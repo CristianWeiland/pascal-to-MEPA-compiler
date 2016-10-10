@@ -1,3 +1,4 @@
+(*Testa if then com atribuicao entre variaveis.*)
 program p(input, output);
 var a, b: integer;
 begin

@@ -1,0 +1,17 @@
+     INPP
+     AMEM 2
+     DSVS r000
+r001: ENPR 1
+     CRCT 2
+     CRCT 1
+     SOMA
+     ARMZ 0,0
+     RTPR 1,0
+r000: NADA
+     CRCT 2
+     ARMZ 0,0
+     CHPR r001,0
+     CRCT 1
+     ARMZ 0,1
+     DMEM 2
+     PARA

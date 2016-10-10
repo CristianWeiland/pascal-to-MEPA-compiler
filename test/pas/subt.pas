@@ -1,3 +1,4 @@
+(*Testa uma subtracao entre constantes.*)
 program p(input, output);
 var a: integer;
 begin

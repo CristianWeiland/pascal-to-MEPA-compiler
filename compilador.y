@@ -11,13 +11,24 @@
 #include "compilador.h"
 #include "utils.h"
 
-int offset, lexLevel = 0;
+int offset, lexLevel, n_params_reais = 0;
 // Obs: Nao da pra inicializar coisas aqui!
 ST symbolTable;
 Stack labels;
 Stack ExprE, ExprT, ExprF;
 Element atribuido;
 char Operacao[5];
+
+const char* type_integer = "int";
+const char* type_boolean = "bool";
+
+/* Coisas de procedures */
+Element procedure;
+Procedure proc;
+int formal_param_index;
+Stack procSt;
+
+Cat category;
 
 %}
 
@@ -31,85 +42,167 @@ char Operacao[5];
 %token IGUAL NUMERO MAIOR MENOR DESIGUAL
 %token MAIOR_IGUAL MENOR_IGUAL
 
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
+
+%nonassoc LOWER_THAN_ATRIB
+%nonassoc ATRIB
+
 %%
 
-programa    :{
-             symbolTable = initST();
-             labels = initStack();
-             ExprE = initStack();
-             ExprT = initStack();
-             ExprF = initStack();
-             atribuido = NULL;
-             geraCodigo (NULL, "INPP");
-             }
-             PROGRAM IDENT
-             ABRE_PARENTESES lista_idents FECHA_PARENTESES PONTO_E_VIRGULA
-             bloco PONTO {
-             char dmem[10];
-             sprintf(dmem, "DMEM %d", offset);
-             geraCodigo(NULL, dmem);
-             geraCodigo (NULL, "PARA");
-             deleteST(symbolTable);
-             deleteStack(labels);
-             deleteStack(ExprE);
-             deleteStack(ExprT);
-             deleteStack(ExprF);
-             }
-;
+programa: {
+    symbolTable = initST();
+    labels = initStack();
+    ExprE = initStack();
+    ExprT = initStack();
+    ExprF = initStack();
+    procSt = initStack();
+    atribuido = NULL;
+    geraCodigo (NULL, "INPP");
+} PROGRAM IDENT ABRE_PARENTESES lista_idents FECHA_PARENTESES PONTO_E_VIRGULA bloco PONTO {
+    geraCodigo (NULL, "PARA");
+    deleteST(symbolTable);
+    deleteStack(labels);
+    deleteStack(ExprE);
+    deleteStack(ExprT);
+    deleteStack(ExprF);
+    deleteStack(procSt);
+};
 
-bloco       :
-              parte_declara_vars
-              {
-              }
+bloco: parte_declara_vars parte_declara_subrotina comando_composto {
+    int i = removeLocalSymb(symbolTable, lexLevel);
+    if(i > 0) {
+        char dmem[10];
+        sprintf(dmem, "DMEM %d", i);
+        geraCodigo(NULL, dmem);
+    }
+};
 
-              comando_composto
-              ;
+parte_declara_vars: {
+    offset = 0;
+} VAR declara_vars {
+    char amem[10];
+    sprintf(amem, "AMEM %d", offset);
+    geraCodigo(NULL, amem);
+} | ;
 
+declara_vars: declara_vars declara_var | declara_var;
 
+declara_var: lista_id_var DOIS_PONTOS tipo PONTO_E_VIRGULA;
 
-
-parte_declara_vars:  var
-
-var         : { offset = 0; } VAR declara_vars {
-                    char amem[10];
-                    sprintf(amem, "AMEM %d", offset);
-                    geraCodigo(NULL, amem);
-                }
-            |
-;
-
-declara_vars: declara_vars declara_var
-            | declara_var
-;
-
-declara_var : { }
-              lista_id_var DOIS_PONTOS
-              tipo
-              { /* AMEM */
-              }
-              PONTO_E_VIRGULA
-;
-
-tipo        : INTEGER
-;
+tipo: INTEGER;
 
 lista_id_var: lista_id_var VIRGULA IDENT {
-                //token ja está definido ?
-                Cat cat = initSimpleVar(offset);
-                insertST(symbolTable, token, lexLevel, SIMPLEVAR, cat);
-                ++offset;
-            }
-            | IDENT {
-                //token ja está definido ?
-                Cat cat = initSimpleVar(offset);
-                insertST(symbolTable, token, lexLevel, SIMPLEVAR, cat);
-                ++offset;
-            }
-;
+    Cat cat = initSimpleVar(offset);
+    insertST(symbolTable, token, lexLevel, CAT_SIMPLEVAR, cat);
+    ++offset;
+} | IDENT {
+    Cat cat = initSimpleVar(offset);
+    insertST(symbolTable, token, lexLevel, CAT_SIMPLEVAR, cat);
+    ++offset;
+};
 
-lista_idents: lista_idents VIRGULA IDENT
-            | IDENT
-;
+lista_idents: lista_idents VIRGULA IDENT | IDENT;
+
+parte_declara_subrotina: parte_declara_subrotina parte_declara_procedimento | ;
+
+parte_declara_procedimento: PROCEDURE IDENT {
+    // ENPR lex_level do procedimento.
+    char dsvs[10];
+    // Gera rotulo de saida.
+    char *label_in = nextLabel();
+    sprintf(dsvs, "DSVS %s", label_in);
+    push(labels, label_in); // Guarda pra poder declarar o rotulo depois (r000: NADA).
+    geraCodigo(NULL, dsvs);
+
+    char enpr[8];
+    char *label_proc = nextLabel();
+    ++lexLevel;
+    sprintf(enpr, "ENPR %d", lexLevel);
+    // r01: ENPR 1 --> Isso ja gera o rotulo pra entrar no procedimento!
+    geraCodigo(label_proc, enpr);
+
+    //procedure = (Element) malloc(sizeof(struct Element));
+    procedure = createElement();
+    procedure->cat = CAT_PROCEDURE;
+    procedure->lexLevel = lexLevel;
+    //proc = (Procedure) malloc(sizeof(struct Procedure));
+    category = createProcedure();
+    proc = category->procedure;
+    //proc = createProcedure();
+    proc->n_params = 0;
+    procedure->value->procedure = proc;
+
+    // Insere o label de entrada do proc na Tabela de Simbolos.
+    strncpy(proc->label, label_proc, MAX_SYMB_LEN);
+    // Insere o procedimento na tabela de simbolos.
+    pushST(symbolTable, procedure);
+    push(procSt, procedure);
+    // Adiciona o nome do proc na Tabela de Simbolos.
+    strncpy(procedure->symbol, token, MAX_SYMB_LEN);
+} parte_params_formais PONTO_E_VIRGULA bloco PONTO_E_VIRGULA {
+    // REMOVE TUDAS PIZZARIA DA TABELA DE SIMBOLOS E CARREGA O PROC CERTO
+    char rtpr[12];
+    procedure = (Element) pop(procSt);
+    sprintf(rtpr, "RTPR %d,%d", procedure->lexLevel, procedure->value->procedure->n_params);
+    geraCodigo(NULL, rtpr);
+    // PRECISA TIRAR DA TABELA DE SIMBOLOS AS VARIAVEIS, PROCEDURES E FUNCTIONS LOCAIS
+    // limpaST(lexLevel);
+    --lexLevel;
+    // Cria rotulo de saida.
+    geraCodigo(pop(labels), "NADA");
+};
+
+parte_params_formais: ABRE_PARENTESES params_formais FECHA_PARENTESES {
+    fixOffsetST(symbolTable);
+} | ;
+
+params_formais: params_formais PONTO_E_VIRGULA param | param;
+
+param: lista_args_copia DOIS_PONTOS tipo {
+    // Atualiza o tipo na TS.
+} | VAR lista_args_ref DOIS_PONTOS {
+    // Atualiza o tipo na TS.
+} tipo;
+
+lista_args_copia: lista_args_copia VIRGULA IDENT {
+    // Obs: Lista_args ainda nao aceita passagem por referencia, só por cópia.
+    // Achei algo tipo "a, b: integer", aqui eu to tratando o 'b', por exemplo.
+    // Token == 'b'.
+
+    /* O que ta nesse comentario funciona, mas eh feio.
+    proc->n_params++;
+
+    //FormalParam fp = (FormalParam) malloc(sizeof(struct FormalParam));
+    category = createFormalParam();
+    FormalParam fp = category->formalParam;
+    fp->offset = 1000000; // Aqui ainda nao sei offset. Tenho que arrumar na TS depois.
+                         // To setando em 1000000 porque se eu ver isso impresso, sei que deu ruim.
+    fp->referencia = ; // Por enquanto referencia eh sempre 0, portanto, eh sempre valor.
+    insertST(symbolTable, token, lexLevel, CAT_FORMALPARAM, category);
+    */
+
+    cria_arg(&proc, symbolTable, token, lexLevel, 0);
+} | IDENT {
+    /* O que ta nesse comentario funciona, mas eh feio.
+    proc->n_params++;
+
+    category = createFormalParam();
+    FormalParam fp = category->formalParam;
+    fp->offset = 1000000; // Aqui ainda nao sei offset. Tenho que arrumar na TS depois.
+                         // To setando em 1000000 porque se eu ver isso impresso, sei que deu ruim.
+    fp->referencia = referencia; // Por enquanto referencia eh sempre 0, portanto, eh sempre valor.
+    insertST(symbolTable, token, lexLevel, CAT_FORMALPARAM, category);
+    */
+
+    cria_arg(&proc, symbolTable, token, lexLevel, 0);
+};
+
+lista_args_ref: lista_args_ref VIRGULA IDENT {
+    cria_arg(&proc, symbolTable, token, lexLevel, 1);
+} | IDENT {
+    cria_arg(&proc, symbolTable, token, lexLevel, 1);
+};
 
 comando_composto: T_BEGIN comandos T_END;
 
@@ -120,32 +213,123 @@ comando: rotulo comando_sem_rotulo;
 /* Ou 'numero DOIS_PONTOS' ou nada. Suponho que, se nao tem nada, eu deixo em branco soh. */
 rotulo: NUMERO DOIS_PONTOS | ;
 
-comando_sem_rotulo: atribuicao | comando_repetitivo | comando_condicional;
+comando_sem_rotulo: atrib_ou_csr | comando_repetitivo | comando_condicional;
 
-atribuicao: variavel ATRIBUICAO expr {
-        char armz[13]; // Da ateh 3 digitos de inteiros
-        sprintf(armz, "ARMZ %d,%d", atribuido->lexLevel, atribuido->value->simpleVar.offset);
-        geraCodigo(NULL, armz);
-        // Verifica se os tipos sao iguais. NAO FOI FEITO AINDA.
+atrib_ou_csr: IDENT {
+    int i;
+    if((i = searchST(symbolTable, token)) < 0) {
+        eSymbolNotFound(token);
+    }
+    atribuido = symbolTable->elems[i];
+    procedure = symbolTable->elems[i];
+    formal_param_index = i;
+    /*if(procedure->cat != CAT_PROCEDURE && procedure->cat != CAT_FUNCTION) {
+        yyerror("Chamada de subrotina para um identificador que nao eh funcao nem procedimento.");
+        exit(1);
+    }*/
+    //n_params_reais = 0;
+} atrib_ou_csr2;
+
+atrib_ou_csr2: atribuicao | chamada_subrotina;
+
+atribuicao: ATRIBUICAO expr {
+    //printf("Atribuicao token %s\n", token);
+    char armz[13]; // Da ateh 3 digitos de inteiros
+    if(atribuido->cat == CAT_SIMPLEVAR)
+        sprintf(armz, "ARMZ %d,%d", atribuido->lexLevel, atribuido->value->simpleVar->offset);
+    else if(atribuido->cat == CAT_FORMALPARAM && atribuido->value->formalParam->referencia == 0) // Passado por valor
+        sprintf(armz, "ARMZ %d,%d", atribuido->lexLevel, atribuido->value->formalParam->offset);
+    else if(atribuido->cat == CAT_FORMALPARAM && atribuido->value->formalParam->referencia == 1) // Passado por referencia
+        sprintf(armz, "ARMI %d,%d", atribuido->lexLevel, atribuido->value->formalParam->offset);
+    else
+        puts("Tentando atribuir pra algo que nao eh FormalParam nem SimpleVar...");
+    geraCodigo(NULL, armz);
+    // Verifica se os tipos sao iguais. NAO FOI FEITO AINDA.
+};
+
+chamada_subrotina: {
+    if(procedure->cat != CAT_PROCEDURE && procedure->cat != CAT_FUNCTION) {
+        yyerror("Chamada de subrotina para um identificador que nao eh funcao nem procedimento.");
+        exit(1);
+    }
+    n_params_reais = 0;
+} params_reais {
+    // Checa se o numero de parametros confere.
+    //printf("Entrei na subrotina com o token %s.\n", token);
+    int n_params = -1;
+    char *label;
+    if(procedure->cat == CAT_PROCEDURE) {
+        n_params = procedure->value->procedure->n_params;
+        label = procedure->value->procedure->label;
+    }/* else { // Function
+        n_params = procedure->value->function->n_params;
+        label = procedure->value->function->label;
+    }*/
+    if(n_params_reais != n_params) {
+        char err[100];
+        sprintf(err, "Chamada de subrotina com numero errado de parametros: %d usados, %d esperados.", n_params_reais, n_params);
+        yyerror(err);
     }
 
-variavel: IDENT {
-            int i;
-            if((i = searchST(symbolTable, token)) < 0) {
-                eSymbolNotFound(token);
-            }
-            atribuido = symbolTable->elems[i];
+    // Parametros corretos e empilhados, chama funcao.
+    char chpr[13];
+    sprintf(chpr, "CHPR %s,%d", label, lexLevel);
+    geraCodigo(NULL, chpr);
+};
+
+params_reais: ABRE_PARENTESES lista_params_reais FECHA_PARENTESES | ;
+
+lista_params_reais: lista_params_reais VIRGULA param_real | param_real;
+
+param_real: IDENT {
+    int i = searchST(symbolTable, token);
+    if(i < 0) {
+        eSymbolNotFound(token);
+    }
+    Element elem = symbolTable->elems[i];
+    if(elem->cat != CAT_SIMPLEVAR && elem->cat != CAT_FORMALPARAM) {
+        yyerror("Parametro que nao eh simplevar usado na chamada de subrotina.");
+    }
+
+    ++formal_param_index;
+    FormalParam fp = symbolTable->elems[formal_param_index]->value->formalParam;
+
+    ++n_params_reais;
+
+    char cr[13], mod[5];
+
+    if(fp->referencia) { // Passagem por referencia.
+        if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia) {
+            sprintf(mod, "CRVL");
+        } else {
+            sprintf(mod, "CREN");
         }
+    } else { // Passagem por valor.
+        if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia) {
+            sprintf(mod, "CRVI");
+        } else {
+            sprintf(mod, "CRVL");
+        }
+    }
+
+    sprintf(cr, "%s %d,%d", mod, elem->lexLevel, elem->value->simpleVar->offset);
+    geraCodigo(NULL, cr);
+    // Falta ainda ver como passar direito (valor ou referencia).
+} | NUMERO {
+    // Se for passagem por referencia --> erro.
+    ++n_params_reais;
+    char crct[13];
+    sprintf(crct, "CRCT %s", token);
+    geraCodigo(NULL, crct);
+};
 
 expressao: expr relacao expr {
-    /*
-    checa_tipo(ExprE, ExprE, "boolean");
-    */
     geraCodigo(NULL, Operacao);
-} | expr {
-    /* if(strcmp("boolean", (char *) pop(ExprE)) != 0) {
+} | expr { // Isso aceita caso exista uma var a = boolean e tenha algo tipo "if(a)".
+    // Tambem aceita if(a and b). O pop deve estar certo.
+    if(strcmp("boolean", (char *) pop(ExprE)) != 0) {
         imprimeErro("Erro na verificacao de tipos.");
-    }*/
+    }
 };
 
 relacao: MAIOR {
@@ -164,53 +348,46 @@ relacao: MAIOR {
 
 expr: expr MAIS t {
     geraCodigo(NULL, "SOMA");
-    checa_tipo(ExprT, ExprE, "integer");
+    checa_tipo(ExprT, ExprE, type_integer);
 
-    char type[] = "integer";
-    push(ExprE, (void*)type);
+    push(ExprE, (void*)type_integer);
 } | expr OR t {
     geraCodigo(NULL, "CONJ");
-    checa_tipo(ExprT, ExprE, "boolean");
+    checa_tipo(ExprT, ExprE, type_boolean);
 
-    char type[] = "boolean";
-    push(ExprE, (void*)type);
+    push(ExprE, (void*)type_boolean);
 } | expr MENOS t {
     geraCodigo(NULL, "SUBT");
-    checa_tipo(ExprT, ExprE, "integer");
+    checa_tipo(ExprT, ExprE, type_integer);
 
-    char type[] = "integer";
-    push(ExprE, (void*)type);
+    push(ExprE, (void*)type_integer);
 } | t {
     push(ExprE, pop(ExprT));
-}
+};
 
 t: t ASTERISCO f {
     geraCodigo(NULL, "MULT");
-    checa_tipo(ExprF, ExprT, "integer");
-    char type[] = "integer";
-    push(ExprT, (void*)type);
+    checa_tipo(ExprF, ExprT, type_integer);
+    push(ExprT, (void*)type_integer);
 } | t AND f {
     geraCodigo(NULL, "DISJ");
-    checa_tipo(ExprF, ExprT, "boolean");
-    char type[] = "boolean";
-    push(ExprT, (void*)type);
+    checa_tipo(ExprF, ExprT, type_boolean);
+    push(ExprT, (void*)type_boolean);
 } | t BARRA f {
     geraCodigo(NULL, "DIVI");
-    checa_tipo(ExprF, ExprT, "integer");
-    char type[] = "integer";
-    push(ExprT, (void*)type);
+    checa_tipo(ExprF, ExprT, type_integer);
+    push(ExprT, (void*)type_integer);
 } | f {
     // Joga o tipo pra cima.
     push(ExprT, pop(ExprF));
-}
+};
 
 f: NUMERO {
     char crct[13];
     sprintf(crct, "CRCT %s", token);
     geraCodigo(NULL, crct);
 
-    char type[] = "integer";
-    push(ExprF, (void*)type);
+    push(ExprF, (void*)type_integer);
 } | IDENT {
     int i = searchST(symbolTable, token);
     if(i < 0){
@@ -218,60 +395,79 @@ f: NUMERO {
     }
     Element elem = symbolTable->elems[i];
     char crvl[13]; // Da ateh 3 digitos de inteiros
-    sprintf(crvl, "CRVL %d,%d", elem->lexLevel, elem->value->simpleVar.offset);
+
+    if(elem->cat == CAT_SIMPLEVAR)
+        sprintf(crvl, "CRVL %d,%d", elem->lexLevel, elem->value->simpleVar->offset);
+    else if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia == 0) // Passado por valor
+        sprintf(crvl, "CRVL %d,%d", elem->lexLevel, elem->value->formalParam->offset);
+    else if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia == 1) // Passado por referencia
+        sprintf(crvl, "CRVI %d,%d", elem->lexLevel, elem->value->formalParam->offset);
+    else
+        puts("Tentando carregar uma variavel que nao eh FormalParam nem SimpleVar...");
     geraCodigo(NULL, crvl);
 
-    char type[] = "integer";
-    push(ExprF, (void*)type);
-}
+    push(ExprF, (void*)type_integer);
+};
 
 cmd_simples_ou_composto: comando_composto | comando_sem_rotulo;
 
 /* Implementa while */
 comando_repetitivo: WHILE {
-        char *label_in = nextLabel();
-        push(labels, label_in);
-        geraCodigo(label_in, "NADA");
-    } ABRE_PARENTESES expressao FECHA_PARENTESES DO {
-        char *label_out = nextLabel();
-        push(labels, label_out);
-        char aux[15]; // Precisa 10 soh acho.
-        strcpy(aux, "DSVF ");
-        strcat(aux, label_out);
-        geraCodigo(NULL, aux);
-    }
-    cmd_simples_ou_composto {
-        char *label_out = (char *) pop(labels);
-        char *label_in = (char *) pop(labels);
+    char *label_in = nextLabel();
+    push(labels, label_in);
+    geraCodigo(label_in, "NADA");
+} ABRE_PARENTESES expressao FECHA_PARENTESES DO {
+    char *label_out = nextLabel();
+    push(labels, label_out);
+    char aux[15]; // Precisa 10 soh acho.
+    strcpy(aux, "DSVF ");
+    strcat(aux, label_out);
+    geraCodigo(NULL, aux);
+} cmd_simples_ou_composto {
+    char *label_out = (char *) pop(labels);
+    char *label_in = (char *) pop(labels);
 
-        char aux[15]; // Precisa 10 soh acho.
-        strcpy(aux, "DSVS ");
-        strcat(aux, label_in);
+    char aux[15]; // Precisa 10 soh acho.
+    strcpy(aux, "DSVS ");
+    strcat(aux, label_in);
 
-        geraCodigo(NULL, aux);
-        geraCodigo(label_out, "NADA");
-        free(label_out);
-        free(label_in);
-    };
+    geraCodigo(NULL, aux);
+    geraCodigo(label_out, "NADA");
+    free(label_out);
+    free(label_in);
+};
 
-comando_condicional: IF ABRE_PARENTESES expressao FECHA_PARENTESES
-                  THEN {
-                      char *label_out = nextLabel();
-                      push(labels, label_out);
-                      char aux[15]; // Precisa 10 soh acho.
-                      strcpy(aux, "DSVF ");
-                      strcat(aux, label_out);
-                      geraCodigo(NULL, aux);
-                  } cmd_simples_ou_composto {
-                      char *label_out = (char *) pop(labels);
-                      geraCodigo(label_out, "NADA");
-                      free(label_out);
-                  }
-               /* | IF ABRE_PARENTESES expressao FECHA_PARENTESES
-                  THEN cmd_simples_ou_composto
-                  ELSE cmd_simples_ou_composto
-               */
+comando_condicional: if_then cmd_composto_else {
+    // Gera o ultimo rotulo, que vai ser destino do DSVF (depois do fim do if then else).
+    char *label_out = (char *) pop(labels);
+    geraCodigo(label_out, "NADA");
+    free(label_out);
+};
 
+if_then: IF ABRE_PARENTESES expressao FECHA_PARENTESES {
+    // Gera DSVF
+    char *label_out = nextLabel();
+    push(labels, label_out);
+    char aux[15]; // Precisa 10 soh acho.
+    strcpy(aux, "DSVF ");
+    strcat(aux, label_out);
+    geraCodigo(NULL, aux);
+} THEN cmd_simples_ou_composto;
+
+cmd_composto_else: {
+    // Insere DSVS e rotulo do else. Obs: O pop deve ser feito ANTES do push!!
+    char *label_in = nextLabel();
+    char aux[15];
+    strcpy(aux, "DSVS ");
+    strcat(aux, label_in);
+    geraCodigo(NULL, aux);
+
+    char *label_out = (char *) pop(labels);
+    geraCodigo(label_out, "NADA");
+    free(label_out);
+
+    push(labels, label_in);
+} ELSE cmd_simples_ou_composto | %prec LOWER_THAN_ELSE;
 
 %%
 
@@ -306,4 +502,15 @@ void checa_tipo(Stack F, Stack T, const char* expected) {
     if(strcmp(x, expected) != 0 || strcmp(y, expected) != 0) {
         imprimeErro("Erro na verificacao de tipos.");
     }
+}
+
+void cria_arg(Procedure *proc, ST st, char *token, int lexLevel, int ref) {
+    (*proc)->n_params++;
+
+    Cat cat = createFormalParam();
+    FormalParam fp = cat->formalParam;
+    fp->offset = 1000000; // Aqui ainda nao sei offset. Tenho que arrumar na TS depois.
+                         // To setando em 1000000 porque se eu ver isso impresso, sei que deu ruim.
+    fp->referencia = ref; // Por enquanto referencia eh sempre 0, portanto, eh sempre valor.
+    insertST(st, token, lexLevel, CAT_FORMALPARAM, cat);
 }

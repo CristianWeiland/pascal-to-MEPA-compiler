@@ -13,6 +13,11 @@ for file in $files; do
     if [[ $(diff $outputFile mepa/$file.mepa) != "" ]]; then
         echo "Erro: Arquivo $file.pas falhou em teste"
         head -n1 pas/$file.pas
+        if [[ $1 = '--diff' ]]; then
+            echo ""
+            diff $outputFile mepa/$file.mepa
+            echo ""
+        fi
         r=$(($r + 1))
     fi
 done
@@ -20,7 +25,9 @@ done
 rm test.out
 rm MEPA
 
+
 if [[ $r -ne 0 ]]; then
+    echo ""
     echo "Falhou em $r testes"
 fi
 exit $r

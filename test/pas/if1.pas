@@ -1,3 +1,4 @@
+(*Testa if then simples.*)
 program p(input, output);
 var a: integer;
 begin

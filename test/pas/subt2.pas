@@ -1,3 +1,4 @@
+(*Testa varias subtracoes, entre constantes e variaveis*)
 program p(input, output);
 var a, b, c, d: integer;
 begin
