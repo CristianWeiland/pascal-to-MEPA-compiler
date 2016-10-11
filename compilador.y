@@ -40,7 +40,7 @@ Cat category;
 %token GOTO IF THEN ELSE WHILE DO OR DIV AND NOT
 %token INTEGER MAIS MENOS ASTERISCO BARRA
 %token IGUAL NUMERO MAIOR MENOR DESIGUAL
-%token MAIOR_IGUAL MENOR_IGUAL
+%token MAIOR_IGUAL MENOR_IGUAL WRITE READ
 
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
@@ -213,7 +213,55 @@ comando: rotulo comando_sem_rotulo;
 /* Ou 'numero DOIS_PONTOS' ou nada. Suponho que, se nao tem nada, eu deixo em branco soh. */
 rotulo: NUMERO DOIS_PONTOS | ;
 
-comando_sem_rotulo: atrib_ou_csr | comando_repetitivo | comando_condicional;
+comando_sem_rotulo: atrib_ou_csr | comando_repetitivo | comando_condicional | impressao | leitura;
+
+impressao: WRITE ABRE_PARENTESES lista_impressao FECHA_PARENTESES;
+
+lista_impressao: lista_impressao VIRGULA imprime | imprime;
+
+imprime: IDENT {
+    int i;
+    if((i = searchST(symbolTable, token)) < 0) {
+        eSymbolNotFound(token);
+    }
+    Element elem = symbolTable->elems[i];
+    char cr[15];
+    if(elem->cat == CAT_SIMPLEVAR)
+        sprintf(cr, "CRVL %d,%d", elem->lexLevel, elem->value->simpleVar->offset);
+    else if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia == 0) // Passado por valor
+        sprintf(cr, "CRVL %d,%d", elem->lexLevel, elem->value->formalParam->offset);
+    else if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia == 1) // Passado por referencia
+        sprintf(cr, "CRVI %d,%d", elem->lexLevel, elem->value->formalParam->offset);
+    else
+        puts("Tentando imprimir algo que nao eh FormalParam nem SimpleVar...");
+    // Gera CRVL
+    geraCodigo(NULL, cr);
+    geraCodigo(NULL, "IMPR");
+};
+
+leitura: READ ABRE_PARENTESES lista_leitura FECHA_PARENTESES;
+
+lista_leitura: lista_leitura VIRGULA le | le;
+
+le: IDENT {
+    int i;
+    if((i = searchST(symbolTable, token)) < 0) {
+        eSymbolNotFound(token);
+    }
+    Element elem = symbolTable->elems[i];
+    geraCodigo(NULL, "LEIT");
+    char ar[15];
+    if(elem->cat == CAT_SIMPLEVAR)
+        sprintf(ar, "ARMZ %d,%d", elem->lexLevel, elem->value->simpleVar->offset);
+    else if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia == 0) // Passado por valor
+        sprintf(ar, "ARMZ %d,%d", elem->lexLevel, elem->value->formalParam->offset);
+    else if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia == 1) // Passado por referencia
+        sprintf(ar, "ARMI %d,%d", elem->lexLevel, elem->value->formalParam->offset);
+    else
+        puts("Tentando imprimir algo que nao eh FormalParam nem SimpleVar...");
+    // Gera CRVL
+    geraCodigo(NULL, ar);
+};
 
 atrib_ou_csr: IDENT {
     int i;
