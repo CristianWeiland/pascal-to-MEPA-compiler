@@ -1,0 +1,19 @@
+     INPP
+     AMEM 2
+     CRCT 2
+     ARMZ 0,0
+     CRCT 3
+     ARMZ 0,1
+     CRVL 0,0
+     CRVL 0,1
+     CMME
+     CRVL 0,1
+     CRCT 1
+     CMMA
+     DISJ
+     DSVF r000
+     CRCT 1
+     ARMZ 0,0
+r000: NADA
+     DMEM 2
+     PARA

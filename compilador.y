@@ -232,7 +232,8 @@ atrib_ou_csr: IDENT {
 
 atrib_ou_csr2: atribuicao | chamada_subrotina;
 
-atribuicao: ATRIBUICAO expr {
+atribuicao: ATRIBUICAO expressao {
+    pop(ExprE);
     //printf("Atribuicao token %s\n", token);
     char armz[13]; // Da ateh 3 digitos de inteiros
     if(atribuido->cat == CAT_SIMPLEVAR)
@@ -324,8 +325,13 @@ param_real: IDENT {
 };
 
 expressao: expr relacao expr {
+    checa_tipo(ExprE, ExprE, type_integer);
     geraCodigo(NULL, Operacao);
+    push(ExprE, (void*)type_boolean);
 } | expr { // Isso aceita caso exista uma var a = boolean e tenha algo tipo "if(a)".
+};
+
+expressao_booleana: expressao {
     // Tambem aceita if(a and b). O pop deve estar certo.
     if(strcmp(type_boolean, (char *) pop(ExprE)) != 0) {
         imprimeErro("Erro na verificacao de tipos.");
@@ -407,7 +413,7 @@ f: NUMERO {
     geraCodigo(NULL, crvl);
 
     push(ExprF, (void*)type_integer);
-} | ABRE_PARENTESES expr FECHA_PARENTESES {
+} | ABRE_PARENTESES expressao FECHA_PARENTESES {
     push(ExprF, pop(ExprE));
 };
 
@@ -418,7 +424,7 @@ comando_repetitivo: WHILE {
     char *label_in = nextLabel();
     push(labels, label_in);
     geraCodigo(label_in, "NADA");
-} ABRE_PARENTESES expressao FECHA_PARENTESES DO {
+} ABRE_PARENTESES expressao_booleana FECHA_PARENTESES DO {
     char *label_out = nextLabel();
     push(labels, label_out);
     char aux[15]; // Precisa 10 soh acho.
@@ -446,7 +452,7 @@ comando_condicional: if_then cmd_composto_else {
     free(label_out);
 };
 
-if_then: IF ABRE_PARENTESES expressao FECHA_PARENTESES {
+if_then: IF ABRE_PARENTESES expressao_booleana FECHA_PARENTESES {
     // Gera DSVF
     char *label_out = nextLabel();
     push(labels, label_out);
