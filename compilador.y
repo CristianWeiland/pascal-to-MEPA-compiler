@@ -327,7 +327,7 @@ expressao: expr relacao expr {
     geraCodigo(NULL, Operacao);
 } | expr { // Isso aceita caso exista uma var a = boolean e tenha algo tipo "if(a)".
     // Tambem aceita if(a and b). O pop deve estar certo.
-    if(strcmp("boolean", (char *) pop(ExprE)) != 0) {
+    if(strcmp(type_boolean, (char *) pop(ExprE)) != 0) {
         imprimeErro("Erro na verificacao de tipos.");
     }
 };
@@ -407,6 +407,8 @@ f: NUMERO {
     geraCodigo(NULL, crvl);
 
     push(ExprF, (void*)type_integer);
+} | ABRE_PARENTESES expr FECHA_PARENTESES {
+    push(ExprF, pop(ExprE));
 };
 
 cmd_simples_ou_composto: comando_composto | comando_sem_rotulo;
