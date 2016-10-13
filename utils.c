@@ -159,8 +159,9 @@ Cat createFormalParam() {
 
 ExprRef createExprRef(int r, int index) {
     ExprRef er = (ExprRef) malloc(sizeof(struct ExprRef));
-    er->referencia = r;
-    er->formal_param_index = index;
+    er->fp_referencia = r;
+    er->fp_index = index;
+    er->expr_referencia = 1;
     return er;
 }
 

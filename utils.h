@@ -27,8 +27,9 @@ struct FormalParam {
 };
 
 struct ExprRef {
-    int referencia; // 1 = ref, 0 = copia/valor
-    int formal_param_index;
+    int fp_referencia; // 1 = ref, 0 = copia/valor
+    int fp_index;
+    int expr_referencia;
 };
 
 typedef struct Function* Function;

@@ -27,7 +27,6 @@ const char* type_boolean = "bool";
 Element procedure, function;
 Procedure proc;
 Function func;
-int formal_param_index;
 Stack procSt;
 
 Cat category;
@@ -386,9 +385,9 @@ lista_params_reais: lista_params_reais VIRGULA param_real | param_real;
 param_real: {
 
     ExprRef e = (ExprRef) pop(ExprR);
-    ++(e->formal_param_index);
-    FormalParam fp = symbolTable->elems[e->formal_param_index]->value->formalParam;
-    e->referencia = fp->referencia;
+    ++(e->fp_index);
+    FormalParam fp = symbolTable->elems[e->fp_index]->value->formalParam;
+    e->fp_referencia = fp->referencia;
     push(ExprR, e);
 
     ++n_params_reais;
@@ -477,7 +476,7 @@ f: NUMERO {
     Element elem = symbolTable->elems[i];
     ExprRef e = pop(ExprR);
 
-    if(e != NULL && e->referencia) { // Passagem por referencia.
+    if(e != NULL && e->fp_referencia) { // Passagem por referencia.
         if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia) {
             sprintf(mod, "CRVL");
         } else {
