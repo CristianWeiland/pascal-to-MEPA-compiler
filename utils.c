@@ -157,6 +157,13 @@ Cat createFormalParam() {
     return fp;
 }
 
+ExprRef createExprRef(int r, int index) {
+    ExprRef er = (ExprRef) malloc(sizeof(struct ExprRef));
+    er->referencia = r;
+    er->formal_param_index = index;
+    return er;
+}
+
 char* nextLabel() {
     char* str;
     str = (char *) malloc(sizeof(char) * LABEL_LENGTH);
@@ -188,6 +195,8 @@ void push(Stack stack, void *elem) {
 }
 
 void* pop(Stack stack) {
+    if(stack->head == -1)
+        return NULL;
     --(stack->head);
     return stack->elems[stack->head+1];
 }

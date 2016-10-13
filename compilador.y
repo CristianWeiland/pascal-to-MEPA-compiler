@@ -16,6 +16,7 @@ int offset, lexLevel, n_params_reais = 0, is_function;
 ST symbolTable;
 Stack labels;
 Stack ExprE, ExprT, ExprF;
+Stack ExprR;
 Element atribuido;
 char Operacao[5];
 
@@ -58,6 +59,7 @@ programa: {
     ExprT = initStack();
     ExprF = initStack();
     procSt = initStack();
+    ExprR = initStack();
     atribuido = NULL;
     geraCodigo (NULL, "INPP");
 } PROGRAM IDENT ABRE_PARENTESES lista_idents FECHA_PARENTESES PONTO_E_VIRGULA bloco PONTO {
@@ -68,6 +70,7 @@ programa: {
     deleteStack(ExprT);
     deleteStack(ExprF);
     deleteStack(procSt);
+    deleteStack(ExprR);
 };
 
 bloco: parte_declara_vars parte_declara_subrotina comando_composto {
@@ -313,12 +316,15 @@ atrib_ou_csr: IDENT {
     }
     atribuido = symbolTable->elems[i];
     procedure = symbolTable->elems[i];
-    formal_param_index = i;
+    ExprRef e = createExprRef(0, i);
+    push(ExprR, e);
     /*if(procedure->cat != CAT_PROCEDURE && procedure->cat != CAT_FUNCTION) {
         yyerror("Chamada de subrotina para um identificador que nao eh funcao nem procedimento.");
         exit(1);
     }*/
-} atrib_ou_csr2;
+} atrib_ou_csr2 {
+    pop(ExprR);
+};
 
 atrib_ou_csr2: atribuicao | chamada_subrotina;
 
@@ -377,46 +383,18 @@ params_reais: ABRE_PARENTESES lista_params_reais FECHA_PARENTESES | ;
 
 lista_params_reais: lista_params_reais VIRGULA param_real | param_real;
 
-param_real: IDENT {
-    int i = searchST(symbolTable, token);
-    if(i < 0) {
-        eSymbolNotFound(token);
-    }
-    Element elem = symbolTable->elems[i];
-    if(elem->cat != CAT_SIMPLEVAR && elem->cat != CAT_FORMALPARAM) {
-        yyerror("Parametro que nao eh simplevar usado na chamada de subrotina.");
-    }
+param_real: {
 
-    ++formal_param_index;
-    FormalParam fp = symbolTable->elems[formal_param_index]->value->formalParam;
+    ExprRef e = (ExprRef) pop(ExprR);
+    ++(e->formal_param_index);
+    FormalParam fp = symbolTable->elems[e->formal_param_index]->value->formalParam;
+    e->referencia = fp->referencia;
+    push(ExprR, e);
 
     ++n_params_reais;
+} expressao {
 
-    char cr[13], mod[5];
-
-    if(fp->referencia) { // Passagem por referencia.
-        if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia) {
-            sprintf(mod, "CRVL");
-        } else {
-            sprintf(mod, "CREN");
-        }
-    } else { // Passagem por valor.
-        if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia) {
-            sprintf(mod, "CRVI");
-        } else {
-            sprintf(mod, "CRVL");
-        }
-    }
-
-    sprintf(cr, "%s %d,%d", mod, elem->lexLevel, elem->value->simpleVar->offset);
-    geraCodigo(NULL, cr);
     // Falta ainda ver como passar direito (valor ou referencia).
-} | NUMERO {
-    // Se for passagem por referencia --> erro.
-    ++n_params_reais;
-    char crct[13];
-    sprintf(crct, "CRCT %s", token);
-    geraCodigo(NULL, crct);
 };
 
 expressao: expr relacao expr {
@@ -494,19 +472,31 @@ f: NUMERO {
     if(i < 0){
         eSymbolNotFound(token);
     }
+
+    char cr[13], mod[5];
     Element elem = symbolTable->elems[i];
-    char crvl[13]; // Da ateh 3 digitos de inteiros
+    ExprRef e = pop(ExprR);
 
-    if(elem->cat == CAT_SIMPLEVAR)
-        sprintf(crvl, "CRVL %d,%d", elem->lexLevel, elem->value->simpleVar->offset);
-    else if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia == 0) // Passado por valor
-        sprintf(crvl, "CRVL %d,%d", elem->lexLevel, elem->value->formalParam->offset);
-    else if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia == 1) // Passado por referencia
-        sprintf(crvl, "CRVI %d,%d", elem->lexLevel, elem->value->formalParam->offset);
-    else
-        puts("Tentando carregar uma variavel que nao eh FormalParam nem SimpleVar...");
-    geraCodigo(NULL, crvl);
+    if(e != NULL && e->referencia) { // Passagem por referencia.
+        if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia) {
+            sprintf(mod, "CRVL");
+        } else {
+            sprintf(mod, "CREN");
+        }
+    } else { // Passagem por valor.
+        if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia) {
+            sprintf(mod, "CRVI");
+        } else {
+            sprintf(mod, "CRVL");
+        }
+    }
 
+    sprintf(cr, "%s %d,%d", mod, elem->lexLevel, elem->value->simpleVar->offset);
+    geraCodigo(NULL, cr);
+
+    if(e != NULL) {
+        push(ExprR, e);
+    }
     push(ExprF, (void*)type_integer);
 } | ABRE_PARENTESES expressao FECHA_PARENTESES {
     push(ExprF, pop(ExprE));

@@ -26,10 +26,16 @@ struct FormalParam {
     int referencia; // 1 = ref, 0 = copia/valor
 };
 
+struct ExprRef {
+    int referencia; // 1 = ref, 0 = copia/valor
+    int formal_param_index;
+};
+
 typedef struct Function* Function;
 typedef struct SimpleVar* SimpleVar;
 typedef struct Procedure* Procedure;
 typedef struct FormalParam* FormalParam;
+typedef struct ExprRef* ExprRef;
 
 union Cat{
     SimpleVar simpleVar;
@@ -77,6 +83,7 @@ Cat initSimpleVar(int offset);
 Cat createProcedure();
 Cat createFunction();
 Cat createFormalParam();
+ExprRef createExprRef(int r, int index);
 
 char* nextLabel();
 
