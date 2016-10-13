@@ -70,10 +70,10 @@ int removeLocalSymb(ST st, int lexLevel) {
     return removed;
 }
 
-void fixOffsetST(ST st) {
-    //debug(st);
+int fixOffsetST(ST st) {
+    // Retorna o proximo offset (usado para functions).
     // Enquanto o proximo elemento da ST nao for uma procedure/function, ignora.
-    int i = st->head; // To acreditando que st->head aponta pro ultimo elemento existente.
+    int i = st->head;
     int offset = -4;
     Element elem = st->elems[i];
     while( elem->cat != CAT_PROCEDURE && elem->cat != CAT_FUNCTION ) {
@@ -88,33 +88,7 @@ void fixOffsetST(ST st) {
         --i;
         elem = st->elems[i];
     }
-/*    Element elem = st->elems[i];
-    while( elem->cat != CAT_PROCEDURE && elem->cat != CAT_FUNCTION ) {
-        --i;
-        elem = st->elems[i];
-    }
-    // Se eu pegar st->elems[i] agora ele vai conter a procedure. Quero o proximo elemento.
-    ++i;
-
-    int offset = -4;
-
-    printf("Achei i = %d e head = %d.\n", i, st->head);
-
-    while( i <= st->head ) {
-        if(elem->cat != CAT_FORMALPARAM) {
-            puts("Deveria ser formalParam.");
-            ++i;
-            continue;
-        }
-        elem = st->elems[i];
-        elem->value->formalParam->offset = offset;
-        --offset;
-        // Neste momento, elem contém o primeiro parametro (se contiver algum).
-
-        ++i;
-    }
-*/
-    //debug(st);
+    return offset;
 }
 
 void debug(ST st) {
@@ -168,6 +142,13 @@ Cat createProcedure() {
     proc->procedure = malloc(sizeof(struct Procedure));
     proc->procedure->label = (char *) malloc(sizeof(char) * MAX_SYMB_LEN);
     return proc;
+}
+
+Cat createFunction() {
+    Cat func = (Cat) malloc(sizeof(union Cat));
+    func->function = malloc(sizeof(struct Function));
+    func->function->label = (char *) malloc(sizeof(char) * MAX_SYMB_LEN);
+    return func;
 }
 
 Cat createFormalParam() {

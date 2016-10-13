@@ -15,11 +15,18 @@ struct Procedure {
     char *label;
 };
 
+struct Function {
+    int n_params;
+    char *label;
+    int offset;
+};
+
 struct FormalParam {
     int offset;
     int referencia; // 1 = ref, 0 = copia/valor
 };
 
+typedef struct Function* Function;
 typedef struct SimpleVar* SimpleVar;
 typedef struct Procedure* Procedure;
 typedef struct FormalParam* FormalParam;
@@ -28,12 +35,12 @@ union Cat{
     SimpleVar simpleVar;
     Procedure procedure;
     FormalParam formalParam;
+    Function function;
     /*
-    function;
     label;
     */
 };
-
+// Funciona passar como parametro a > b?
 typedef union Cat* Cat;
 
 struct Element { // Sujeito a mudança
@@ -59,7 +66,7 @@ int searchST(ST st, const char *symb);
 int pushST(ST st, Element elem);
 int insertST(ST st, const char* symb, int lexlev, int cat, Cat value);
 int removeLocalSymb(ST st, int lexLevel);
-void fixOffsetST(ST st); // Talvez precisa receber o lex level?
+int fixOffsetST(ST st); // Talvez precisa receber o lex level?
 void deleteST(ST st);
 ST initST();
 void debug(ST st);
@@ -68,6 +75,7 @@ void printElement(Element e);
 Element createElement();
 Cat initSimpleVar(int offset);
 Cat createProcedure();
+Cat createFunction();
 Cat createFormalParam();
 
 char* nextLabel();

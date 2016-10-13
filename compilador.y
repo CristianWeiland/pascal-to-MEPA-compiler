@@ -11,7 +11,7 @@
 #include "compilador.h"
 #include "utils.h"
 
-int offset, lexLevel, n_params_reais = 0;
+int offset, lexLevel, n_params_reais = 0, is_function;
 // Obs: Nao da pra inicializar coisas aqui!
 ST symbolTable;
 Stack labels;
@@ -23,8 +23,9 @@ const char* type_integer = "int";
 const char* type_boolean = "bool";
 
 /* Coisas de procedures */
-Element procedure;
+Element procedure, function;
 Procedure proc;
+Function func;
 int formal_param_index;
 Stack procSt;
 
@@ -104,7 +105,7 @@ lista_id_var: lista_id_var VIRGULA IDENT {
 
 lista_idents: lista_idents VIRGULA IDENT | IDENT;
 
-parte_declara_subrotina: parte_declara_subrotina parte_declara_procedimento | ;
+parte_declara_subrotina: parte_declara_subrotina parte_declara_procedimento | parte_declara_subrotina parte_declara_funcao | ;
 
 parte_declara_procedimento: PROCEDURE IDENT {
     // ENPR lex_level do procedimento.
@@ -140,6 +141,8 @@ parte_declara_procedimento: PROCEDURE IDENT {
     push(procSt, procedure);
     // Adiciona o nome do proc na Tabela de Simbolos.
     strncpy(procedure->symbol, token, MAX_SYMB_LEN);
+
+    is_function = 0;
 } parte_params_formais PONTO_E_VIRGULA bloco PONTO_E_VIRGULA {
     // REMOVE TUDAS PIZZARIA DA TABELA DE SIMBOLOS E CARREGA O PROC CERTO
     char rtpr[12];
@@ -153,8 +156,56 @@ parte_declara_procedimento: PROCEDURE IDENT {
     geraCodigo(pop(labels), "NADA");
 };
 
+parte_declara_funcao: FUNCTION IDENT {
+    // ENPR lex_level da funcao.
+    char dsvs[10];
+    // Gera rotulo de saida.
+    char *label_in = nextLabel();
+    sprintf(dsvs, "DSVS %s", label_in);
+    push(labels, label_in); // Guarda pra poder declarar o rotulo depois (r000: NADA).
+    geraCodigo(NULL, dsvs);
+
+    char enpr[8];
+    char *label_func = nextLabel();
+    ++lexLevel;
+    sprintf(enpr, "ENPR %d", lexLevel);
+    // r01: ENPR 1 --> Isso ja gera o rotulo pra entrar no procedimento!
+    geraCodigo(label_func, enpr);
+
+    function = createElement();
+    function->cat = CAT_FUNCTION;
+    function->lexLevel = lexLevel;
+    category = createFunction();
+    func = category->function;
+    func->n_params = 0;
+    function->value->function = func;
+
+    // Insere o label de entrada do proc na Tabela de Simbolos.
+    strncpy(func->label, label_func, MAX_SYMB_LEN);
+    // Insere o procedimento na tabela de simbolos.
+    pushST(symbolTable, function);
+    push(procSt, function);
+    // Adiciona o nome do proc na Tabela de Simbolos.
+    strncpy(function->symbol, token, MAX_SYMB_LEN);
+
+    is_function = 1;
+} parte_params_formais {
+    function->value->function->offset = offset;
+} DOIS_PONTOS tipo PONTO_E_VIRGULA bloco PONTO_E_VIRGULA {
+    // REMOVE TUDAS PIZZARIA DA TABELA DE SIMBOLOS E CARREGA O PROC CERTO
+    char rtpr[12];
+    function = (Element) pop(procSt);
+    sprintf(rtpr, "RTPR %d,%d", function->lexLevel, function->value->function->n_params);
+    geraCodigo(NULL, rtpr);
+    // PRECISA TIRAR DA TABELA DE SIMBOLOS AS VARIAVEIS, PROCEDURES E FUNCTIONS LOCAIS
+    // limpaST(lexLevel);
+    --lexLevel;
+    // Cria rotulo de saida.
+    geraCodigo(pop(labels), "NADA");
+};
+
 parte_params_formais: ABRE_PARENTESES params_formais FECHA_PARENTESES {
-    fixOffsetST(symbolTable);
+    offset = fixOffsetST(symbolTable);
 } | ;
 
 params_formais: params_formais PONTO_E_VIRGULA param | param;
@@ -169,39 +220,31 @@ lista_args_copia: lista_args_copia VIRGULA IDENT {
     // Obs: Lista_args ainda nao aceita passagem por referencia, só por cópia.
     // Achei algo tipo "a, b: integer", aqui eu to tratando o 'b', por exemplo.
     // Token == 'b'.
-
-    /* O que ta nesse comentario funciona, mas eh feio.
-    proc->n_params++;
-
-    //FormalParam fp = (FormalParam) malloc(sizeof(struct FormalParam));
-    category = createFormalParam();
-    FormalParam fp = category->formalParam;
-    fp->offset = 1000000; // Aqui ainda nao sei offset. Tenho que arrumar na TS depois.
-                         // To setando em 1000000 porque se eu ver isso impresso, sei que deu ruim.
-    fp->referencia = ; // Por enquanto referencia eh sempre 0, portanto, eh sempre valor.
-    insertST(symbolTable, token, lexLevel, CAT_FORMALPARAM, category);
-    */
-
-    cria_arg(&proc, symbolTable, token, lexLevel, 0);
+    if(is_function)
+        func->n_params++;
+    else
+        proc->n_params++;
+    cria_arg(symbolTable, token, lexLevel, 0);
 } | IDENT {
-    /* O que ta nesse comentario funciona, mas eh feio.
-    proc->n_params++;
-
-    category = createFormalParam();
-    FormalParam fp = category->formalParam;
-    fp->offset = 1000000; // Aqui ainda nao sei offset. Tenho que arrumar na TS depois.
-                         // To setando em 1000000 porque se eu ver isso impresso, sei que deu ruim.
-    fp->referencia = referencia; // Por enquanto referencia eh sempre 0, portanto, eh sempre valor.
-    insertST(symbolTable, token, lexLevel, CAT_FORMALPARAM, category);
-    */
-
-    cria_arg(&proc, symbolTable, token, lexLevel, 0);
+    if(is_function)
+        func->n_params++;
+    else
+        proc->n_params++;
+    cria_arg(symbolTable, token, lexLevel, 0);
 };
 
 lista_args_ref: lista_args_ref VIRGULA IDENT {
-    cria_arg(&proc, symbolTable, token, lexLevel, 1);
+    if(is_function)
+        func->n_params++;
+    else
+        proc->n_params++;
+    cria_arg(symbolTable, token, lexLevel, 1);
 } | IDENT {
-    cria_arg(&proc, symbolTable, token, lexLevel, 1);
+    if(is_function)
+        func->n_params++;
+    else
+        proc->n_params++;
+    cria_arg(symbolTable, token, lexLevel, 1);
 };
 
 comando_composto: T_BEGIN comandos T_END;
@@ -275,7 +318,6 @@ atrib_ou_csr: IDENT {
         yyerror("Chamada de subrotina para um identificador que nao eh funcao nem procedimento.");
         exit(1);
     }*/
-    //n_params_reais = 0;
 } atrib_ou_csr2;
 
 atrib_ou_csr2: atribuicao | chamada_subrotina;
@@ -290,6 +332,8 @@ atribuicao: ATRIBUICAO expressao {
         sprintf(armz, "ARMZ %d,%d", atribuido->lexLevel, atribuido->value->formalParam->offset);
     else if(atribuido->cat == CAT_FORMALPARAM && atribuido->value->formalParam->referencia == 1) // Passado por referencia
         sprintf(armz, "ARMI %d,%d", atribuido->lexLevel, atribuido->value->formalParam->offset);
+    else if(atribuido->cat == CAT_FUNCTION)
+        sprintf(armz, "ARMZ %d,%d", atribuido->lexLevel, atribuido->value->function->offset);
     else
         puts("Tentando atribuir pra algo que nao eh FormalParam nem SimpleVar...");
     geraCodigo(NULL, armz);
@@ -301,6 +345,9 @@ chamada_subrotina: {
         yyerror("Chamada de subrotina para um identificador que nao eh funcao nem procedimento.");
         exit(1);
     }
+    if(procedure->cat == CAT_FUNCTION) {
+        geraCodigo(NULL, "AMEM 1");
+    }
     n_params_reais = 0;
 } params_reais {
     // Checa se o numero de parametros confere.
@@ -310,10 +357,10 @@ chamada_subrotina: {
     if(procedure->cat == CAT_PROCEDURE) {
         n_params = procedure->value->procedure->n_params;
         label = procedure->value->procedure->label;
-    }/* else { // Function
+    } else { // Function
         n_params = procedure->value->function->n_params;
         label = procedure->value->function->label;
-    }*/
+    }
     if(n_params_reais != n_params) {
         char err[100];
         sprintf(err, "Chamada de subrotina com numero errado de parametros: %d usados, %d esperados.", n_params_reais, n_params);
@@ -560,9 +607,7 @@ void checa_tipo(Stack F, Stack T, const char* expected) {
     }
 }
 
-void cria_arg(Procedure *proc, ST st, char *token, int lexLevel, int ref) {
-    (*proc)->n_params++;
-
+void cria_arg(ST st, char *token, int lexLevel, int ref) {
     Cat cat = createFormalParam();
     FormalParam fp = cat->formalParam;
     fp->offset = 1000000; // Aqui ainda nao sei offset. Tenho que arrumar na TS depois.
