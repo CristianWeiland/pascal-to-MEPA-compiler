@@ -165,6 +165,14 @@ ExprRef createExprRef(int r, int index) {
     return er;
 }
 
+void exprSetReference(Stack s, const int value) {
+    ExprRef e = pop(s);
+    if(e != NULL) {
+        e->expr_referencia = value;
+        push(s, e);
+    }
+}
+
 char* nextLabel() {
     char* str;
     str = (char *) malloc(sizeof(char) * LABEL_LENGTH);

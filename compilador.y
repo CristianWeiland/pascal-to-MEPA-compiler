@@ -392,6 +392,13 @@ param_real: {
 
     ++n_params_reais;
 } expressao {
+    ExprRef e = (ExprRef) pop(ExprR);
+    //se fp_referencia = false qualquer valor serve (não da erro)
+    //ser for 1 então expr_referencia também tem que ser
+    if((e->expr_referencia != e->fp_referencia) && e->fp_referencia) {
+        imprimeErro("Erro na verificacao de tipos. Passagem por referencia precisa ter variavel como parametro");
+    }
+    push(ExprR, e);
 
     // Falta ainda ver como passar direito (valor ou referencia).
 };
@@ -400,6 +407,7 @@ expressao: expr relacao expr {
     checa_tipo(ExprE, ExprE, type_integer);
     geraCodigo(NULL, Operacao);
     push(ExprE, (void*)type_boolean);
+    exprSetReference(ExprR, 0);
 } | expr { // Isso aceita caso exista uma var a = boolean e tenha algo tipo "if(a)".
 };
 
@@ -429,16 +437,19 @@ expr: expr MAIS t {
     checa_tipo(ExprT, ExprE, type_integer);
 
     push(ExprE, (void*)type_integer);
+    exprSetReference(ExprR, 0);
 } | expr OR t {
     geraCodigo(NULL, "CONJ");
     checa_tipo(ExprT, ExprE, type_boolean);
 
     push(ExprE, (void*)type_boolean);
+    exprSetReference(ExprR, 0);
 } | expr MENOS t {
     geraCodigo(NULL, "SUBT");
     checa_tipo(ExprT, ExprE, type_integer);
 
     push(ExprE, (void*)type_integer);
+    exprSetReference(ExprR, 0);
 } | t {
     push(ExprE, pop(ExprT));
 };
@@ -447,14 +458,17 @@ t: t ASTERISCO f {
     geraCodigo(NULL, "MULT");
     checa_tipo(ExprF, ExprT, type_integer);
     push(ExprT, (void*)type_integer);
+    exprSetReference(ExprR, 0);
 } | t AND f {
     geraCodigo(NULL, "DISJ");
     checa_tipo(ExprF, ExprT, type_boolean);
     push(ExprT, (void*)type_boolean);
+    exprSetReference(ExprR, 0);
 } | t BARRA f {
     geraCodigo(NULL, "DIVI");
     checa_tipo(ExprF, ExprT, type_integer);
     push(ExprT, (void*)type_integer);
+    exprSetReference(ExprR, 0);
 } | f {
     // Joga o tipo pra cima.
     push(ExprT, pop(ExprF));
@@ -466,6 +480,7 @@ f: NUMERO {
     geraCodigo(NULL, crct);
 
     push(ExprF, (void*)type_integer);
+    exprSetReference(ExprR, 0);
 } | IDENT {
     int i = searchST(symbolTable, token);
     if(i < 0){
@@ -497,6 +512,7 @@ f: NUMERO {
         push(ExprR, e);
     }
     push(ExprF, (void*)type_integer);
+    exprSetReference(ExprR, 1);
 } | ABRE_PARENTESES expressao FECHA_PARENTESES {
     push(ExprF, pop(ExprE));
 };

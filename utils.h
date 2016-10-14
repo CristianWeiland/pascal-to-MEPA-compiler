@@ -84,7 +84,10 @@ Cat initSimpleVar(int offset);
 Cat createProcedure();
 Cat createFunction();
 Cat createFormalParam();
+
+
 ExprRef createExprRef(int r, int index);
+void exprSetReference(Stack s, const int value);
 
 char* nextLabel();
 
