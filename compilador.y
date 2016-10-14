@@ -315,7 +315,7 @@ atrib_ou_csr: IDENT {
     }
     atribuido = symbolTable->elems[i];
     procedure = symbolTable->elems[i];
-    ExprRef e = createExprRef(0, i);
+    ExprRef e = createExprRef(0, i, procedure);
     push(ExprR, e);
     /*if(procedure->cat != CAT_PROCEDURE && procedure->cat != CAT_FUNCTION) {
         yyerror("Chamada de subrotina para um identificador que nao eh funcao nem procedimento.");
@@ -386,11 +386,12 @@ param_real: {
 
     ExprRef e = (ExprRef) pop(ExprR);
     ++(e->fp_index);
+    ++(e->n_params_reais);
+    ++n_params_reais;
     FormalParam fp = symbolTable->elems[e->fp_index]->value->formalParam;
     e->fp_referencia = fp->referencia;
     push(ExprR, e);
 
-    ++n_params_reais;
 } expressao {
     ExprRef e = (ExprRef) pop(ExprR);
     //se fp_referencia = false qualquer valor serve (não da erro)
@@ -487,32 +488,68 @@ f: NUMERO {
         eSymbolNotFound(token);
     }
 
+    ExprRef e = createExprRef(0, i, symbolTable->elems[i]);
+    push(ExprR, e);
+
+    if(e->function->cat == CAT_FUNCTION) {
+        geraCodigo(NULL, "AMEM 1");
+    }
+
+} params_reais {
+
     char cr[13], mod[5];
-    Element elem = symbolTable->elems[i];
     ExprRef e = pop(ExprR);
+    Element elem = e->function;
 
-    if(e != NULL && e->fp_referencia) { // Passagem por referencia.
-        if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia) {
-            sprintf(mod, "CRVL");
-        } else {
-            sprintf(mod, "CREN");
+    if(elem->cat == CAT_FUNCTION) {
+        char *label;
+        int n_params = elem->value->function->n_params;
+        label = elem->value->function->label;
+        if(e->n_params_reais != n_params) {
+            char err[100];
+            sprintf(err, "Chamada de subrotina com numero errado de parametros: %d usados, %d esperados.", e->n_params_reais, n_params);
+            yyerror(err);
         }
-    } else { // Passagem por valor.
-        if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia) {
-            sprintf(mod, "CRVI");
-        } else {
-            sprintf(mod, "CRVL");
-        }
+
+        char chpr[13];
+        sprintf(chpr, "CHPR %s,%d", label, lexLevel);
+        geraCodigo(NULL, chpr);
     }
 
-    sprintf(cr, "%s %d,%d", mod, elem->lexLevel, elem->value->simpleVar->offset);
-    geraCodigo(NULL, cr);
-
-    if(e != NULL) {
-        push(ExprR, e);
+    else if (elem->cat == CAT_PROCEDURE) {
+        imprimeErro("Procedimentos não retornam valor, e não podem ser utilizados em expressões");
     }
-    push(ExprF, (void*)type_integer);
-    exprSetReference(ExprR, 1);
+
+    else {
+        if(e->n_params_reais > 0){
+            imprimeErro("Utilizou parametros para algo que não é uma função");
+        }
+        e = pop(ExprR);
+        if(e != NULL && e->fp_referencia) { // Passagem por referencia.
+            if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia) {
+                sprintf(mod, "CRVL");
+            } else {
+                sprintf(mod, "CREN");
+            }
+        } else { // Passagem por valor.
+            if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia) {
+                sprintf(mod, "CRVI");
+            } else {
+                sprintf(mod, "CRVL");
+            }
+        }
+
+        sprintf(cr, "%s %d,%d", mod, elem->lexLevel, elem->value->simpleVar->offset);
+        geraCodigo(NULL, cr);
+
+        if(e != NULL) {
+            push(ExprR, e);
+        }
+        push(ExprF, (void*)type_integer);
+        exprSetReference(ExprR, 1);
+    }
+
+
 } | ABRE_PARENTESES expressao FECHA_PARENTESES {
     push(ExprF, pop(ExprE));
 };

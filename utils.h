@@ -26,11 +26,6 @@ struct FormalParam {
     int referencia; // 1 = ref, 0 = copia/valor
 };
 
-struct ExprRef {
-    int fp_referencia; // 1 = ref, 0 = copia/valor
-    int fp_index;
-    int expr_referencia;
-};
 
 typedef struct Function* Function;
 typedef struct SimpleVar* SimpleVar;
@@ -59,6 +54,14 @@ struct Element { // Sujeito a mudança
 
 typedef struct Element* Element;
 
+struct ExprRef {
+    int fp_referencia; // 1 = ref, 0 = copia/valor
+    int fp_index;
+    int expr_referencia;
+    int n_params_reais;
+    Element function;
+};
+
 struct ST {
     int head;
     Element elems[100];
@@ -86,7 +89,7 @@ Cat createFunction();
 Cat createFormalParam();
 
 
-ExprRef createExprRef(int r, int index);
+ExprRef createExprRef(int r, int index, Element f);
 void exprSetReference(Stack s, const int value);
 
 char* nextLabel();

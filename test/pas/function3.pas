@@ -4,7 +4,7 @@ var a, b: integer;
 function f(c: integer): integer;
     begin
         c := c-1;
-        if(c > 0)
+        if(c > 0) then
             a := f(c);
         c := 2;
         f := 5
