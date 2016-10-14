@@ -314,8 +314,7 @@ atrib_ou_csr: IDENT {
         eSymbolNotFound(token);
     }
     atribuido = symbolTable->elems[i];
-    procedure = symbolTable->elems[i];
-    ExprRef e = createExprRef(0, i, procedure);
+    ExprRef e = createExprRef(0, i, atribuido);
     push(ExprR, e);
     /*if(procedure->cat != CAT_PROCEDURE && procedure->cat != CAT_FUNCTION) {
         yyerror("Chamada de subrotina para um identificador que nao eh funcao nem procedimento.");
@@ -346,6 +345,8 @@ atribuicao: ATRIBUICAO expressao {
 };
 
 chamada_subrotina: {
+    ExprRef e = pop(ExprR);
+    Element procedure = (Element) e->function;
     if(procedure->cat != CAT_PROCEDURE && procedure->cat != CAT_FUNCTION) {
         yyerror("Chamada de subrotina para um identificador que nao eh funcao nem procedimento.");
         exit(1);
@@ -353,10 +354,12 @@ chamada_subrotina: {
     if(procedure->cat == CAT_FUNCTION) {
         geraCodigo(NULL, "AMEM 1");
     }
-    n_params_reais = 0;
+    push(ExprR, e);
 } params_reais {
     // Checa se o numero de parametros confere.
     //printf("Entrei na subrotina com o token %s.\n", token);
+    ExprRef e = pop(ExprR);
+    Element procedure = (Element) e->function;
     int n_params = -1;
     char *label;
     if(procedure->cat == CAT_PROCEDURE) {
@@ -366,7 +369,7 @@ chamada_subrotina: {
         n_params = procedure->value->function->n_params;
         label = procedure->value->function->label;
     }
-    if(n_params_reais != n_params) {
+    if(e->n_params_reais != n_params) {
         char err[100];
         sprintf(err, "Chamada de subrotina com numero errado de parametros: %d usados, %d esperados.", n_params_reais, n_params);
         yyerror(err);
@@ -376,6 +379,7 @@ chamada_subrotina: {
     char chpr[13];
     sprintf(chpr, "CHPR %s,%d", label, lexLevel);
     geraCodigo(NULL, chpr);
+    push(ExprR, e);
 };
 
 params_reais: ABRE_PARENTESES lista_params_reais FECHA_PARENTESES | ;
@@ -393,6 +397,7 @@ param_real: {
     push(ExprR, e);
 
 } expressao {
+    pop(ExprE);
     ExprRef e = (ExprRef) pop(ExprR);
     //se fp_referencia = false qualquer valor serve (não da erro)
     //ser for 1 então expr_referencia também tem que ser
@@ -514,6 +519,8 @@ f: NUMERO {
         char chpr[13];
         sprintf(chpr, "CHPR %s,%d", label, lexLevel);
         geraCodigo(NULL, chpr);
+
+        push(ExprF, (void*)type_integer);
     }
 
     else if (elem->cat == CAT_PROCEDURE) {
