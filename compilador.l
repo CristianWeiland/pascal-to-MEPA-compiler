@@ -106,8 +106,6 @@ end { simbolo = simb_end;
         return T_END;
  }
 
-
-
 goto {
     simbolo = simb_goto;
     strncpy (token, yytext, TAM_TOKEN);

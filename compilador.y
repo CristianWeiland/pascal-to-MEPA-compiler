@@ -72,7 +72,7 @@ programa: {
     deleteStack(ExprR);
 };
 
-bloco: parte_declara_vars parte_declara_subrotina comando_composto {
+bloco: parte_declaracao parte_declara_subrotina comando_composto {
     int i = removeLocalSymb(symbolTable, lexLevel);
     if(i > 0) {
         char dmem[10];
@@ -81,13 +81,17 @@ bloco: parte_declara_vars parte_declara_subrotina comando_composto {
     }
 };
 
-parte_declara_vars: {
+parte_declaracao: {
     offset = 0;
-} VAR declara_vars {
+} parte_declara {
     char amem[10];
     sprintf(amem, "AMEM %d", offset);
     geraCodigo(NULL, amem);
-} | ;
+};
+
+parte_declara: parte_declara parte_declara_vars | parte_declara parte_declara_label | ;
+
+parte_declara_vars: VAR declara_vars;
 
 declara_vars: declara_vars declara_var | declara_var;
 
@@ -106,6 +110,25 @@ lista_id_var: lista_id_var VIRGULA IDENT {
 };
 
 lista_idents: lista_idents VIRGULA IDENT | IDENT;
+
+parte_declara_label: LABEL declara_labels;
+
+
+// PARTE QUE FALTA SOBRE ROTULOS: Criar o ENRT.
+// Perigo: Variavel cat->label existe, mas eh uma Struct Label. O char* eh cat->label->label!!!
+declara_labels: declara_labels VIRGULA IDENT {
+    Cat cat = createLabel();
+    cat->label->offset = offset;
+    cat->label->label = nextLabel();
+    insertST(symbolTable, token, lexLevel, CAT_LABEL, cat);
+    ++offset;
+} | IDENT {
+    Cat cat = createLabel();
+    cat->label->offset = offset;
+    cat->label->label = nextLabel();
+    insertST(symbolTable, token, lexLevel, CAT_LABEL, cat);
+    ++offset;
+};
 
 parte_declara_subrotina: parte_declara_subrotina parte_declara_procedimento | parte_declara_subrotina parte_declara_funcao | ;
 
@@ -258,7 +281,7 @@ comando: rotulo comando_sem_rotulo;
 /* Ou 'numero DOIS_PONTOS' ou nada. Suponho que, se nao tem nada, eu deixo em branco soh. */
 rotulo: NUMERO DOIS_PONTOS | ;
 
-comando_sem_rotulo: atrib_ou_csr | comando_repetitivo | comando_condicional | impressao | leitura;
+comando_sem_rotulo: atrib_ou_csr | comando_repetitivo | comando_condicional | impressao | leitura | desvio_incondicional;
 
 impressao: WRITE ABRE_PARENTESES lista_impressao FECHA_PARENTESES;
 
@@ -303,9 +326,30 @@ le: IDENT {
     else if(elem->cat == CAT_FORMALPARAM && elem->value->formalParam->referencia == 1) // Passado por referencia
         sprintf(ar, "ARMI %d,%d", elem->lexLevel, elem->value->formalParam->offset);
     else
-        puts("Tentando imprimir algo que nao eh FormalParam nem SimpleVar...");
+        puts("Tentando ler algo que nao eh FormalParam nem SimpleVar...");
     // Gera CRVL
     geraCodigo(NULL, ar);
+};
+
+desvio_incondicional: GOTO IDENT {
+    int i;
+    if((i = searchST(symbolTable, token)) < 0) {
+        eSymbolNotFound(token);
+    }
+    Element elem = symbolTable->elems[i];
+    char dsvr[20];
+    if(elem->cat != CAT_LABEL) {
+        puts("Tentando dar goto para algo que nao eh uma label.");
+    } else {
+        // Essa proxima linha de codigo tem uma BOA CHANCE DE DAR ERRADA!!
+        //                             Rotulo Dest                LexLevel Dest,  LexLevel Atual
+        sprintf(dsvr, "DSVR %s,%d,%d", elem->value->label->label, elem->lexLevel, lexLevel);
+        if(elem->lexLevel != lexLevel) {
+            // To pulando pra fora da funcao (mudando de lexlevel). Preciso limpar a SymbolTable.
+            gotoCleanSymbolTable(symbolTable, elem->lexLevel, lexLevel);
+        }
+    }
+    geraCodigo(NULL, dsvr);
 };
 
 atrib_ou_csr: IDENT {

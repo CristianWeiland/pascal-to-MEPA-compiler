@@ -91,6 +91,21 @@ int fixOffsetST(ST st) {
     return offset;
 }
 
+int gotoCleanSymbolTable(ST st, int destll, int curll) {
+    // Parametros: Symbol Table, Destiny Lex Level, Current Lex Level.
+    if(destll <= curll) {
+        puts("Entao por que chamou, infeliz?");
+        return -1;
+    }
+    int i = st->head;
+    Element elem = st->elems[i];
+    while( elem->lexLevel > destll && i > 0 ) {
+        --i;
+        elem = st->elems[i];
+    }
+    return i;
+}
+
 void debug(ST st) {
     int i;
     printf("Head: %d {\n", st->head);
@@ -155,6 +170,12 @@ Cat createFormalParam() {
     Cat fp = (Cat) malloc(sizeof(union Cat));
     fp->formalParam = malloc(sizeof(struct FormalParam));
     return fp;
+}
+
+Cat createLabel() {
+    Cat lb = (Cat) malloc(sizeof(union Cat));
+    lb->formalParam = malloc(sizeof(struct Label));
+    return lb;
 }
 
 ExprRef createExprRef(int r, int index, Element f) {

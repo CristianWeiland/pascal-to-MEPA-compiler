@@ -26,11 +26,16 @@ struct FormalParam {
     int referencia; // 1 = ref, 0 = copia/valor
 };
 
+struct Label {
+    int offset;
+    char *label;
+};
 
 typedef struct Function* Function;
 typedef struct SimpleVar* SimpleVar;
 typedef struct Procedure* Procedure;
 typedef struct FormalParam* FormalParam;
+typedef struct Label* Label;
 typedef struct ExprRef* ExprRef;
 
 union Cat{
@@ -38,6 +43,7 @@ union Cat{
     Procedure procedure;
     FormalParam formalParam;
     Function function;
+    Label label;
     /*
     label;
     */
@@ -76,7 +82,8 @@ int searchST(ST st, const char *symb);
 int pushST(ST st, Element elem);
 int insertST(ST st, const char* symb, int lexlev, int cat, Cat value);
 int removeLocalSymb(ST st, int lexLevel);
-int fixOffsetST(ST st); // Talvez precisa receber o lex level?
+int fixOffsetST(ST st);
+int gotoCleanSymbolTable(ST st, int destll, int curll);
 void deleteST(ST st);
 ST initST();
 void debug(ST st);
@@ -87,6 +94,7 @@ Cat initSimpleVar(int offset);
 Cat createProcedure();
 Cat createFunction();
 Cat createFormalParam();
+Cat createLabel();
 
 
 ExprRef createExprRef(int r, int index, Element f);
