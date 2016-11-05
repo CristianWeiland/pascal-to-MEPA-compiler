@@ -51,6 +51,18 @@ int searchST(ST st, const char *symb) {
     return -1;
 }
 
+int getLastSubroutineST(ST st) {
+    int i;
+    Element elem;
+    for(i = st->head; i >= 0; --i) {
+        elem = st->elems[i];
+        if(elem->cat == CAT_FUNCTION || elem->cat == CAT_PROCEDURE) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 int removeLocalSymb(ST st, int lexLevel) {
     int removed = 0;
     int i = st->head;

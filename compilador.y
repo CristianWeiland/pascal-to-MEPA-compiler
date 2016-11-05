@@ -11,7 +11,7 @@
 #include "compilador.h"
 #include "utils.h"
 
-int offset, lexLevel, n_params_reais = 0, is_function;
+int offset, lexLevel, n_params_reais = 0, is_function, main_local_vars;
 // Obs: Nao da pra inicializar coisas aqui!
 ST symbolTable;
 Stack labels;
@@ -87,6 +87,11 @@ parte_declaracao: {
     char amem[10];
     sprintf(amem, "AMEM %d", offset);
     geraCodigo(NULL, amem);
+    if(lexLevel == 0) {
+        // Estamos no main. Guarda em main_local_vars o numero de variaveis locais.
+        // Isso vai ser util SOMENTE pra gerar ENRT.
+        main_local_vars = offset;
+    }
 };
 
 parte_declara: parte_declara parte_declara_vars | parte_declara parte_declara_label | ;
@@ -113,8 +118,6 @@ lista_idents: lista_idents VIRGULA IDENT | IDENT;
 
 parte_declara_label: LABEL declara_labels;
 
-
-// PARTE QUE FALTA SOBRE ROTULOS: Criar o ENRT.
 // Perigo: Variavel cat->label existe, mas eh uma Struct Label. O char* eh cat->label->label!!!
 declara_labels: declara_labels VIRGULA IDENT {
     Cat cat = createLabel();
@@ -279,7 +282,37 @@ comandos: comandos PONTO_E_VIRGULA comando | comando;
 comando: rotulo comando_sem_rotulo;
 
 /* Ou 'numero DOIS_PONTOS' ou nada. Suponho que, se nao tem nada, eu deixo em branco soh. */
-rotulo: NUMERO DOIS_PONTOS | ;
+rotulo: NUMERO DOIS_PONTOS {
+    /* Aqui entrou um label. Insere ENRT lex_level_atual, n_var_locais. Acredito que tambem tenho que inserir o r003:. */
+    char enrt[20];
+    /* Pega dados do Rotulo. */
+    int i;
+    if((i = searchST(symbolTable, token)) < 0) {
+        eSymbolNotFound(token);
+    }
+    Element lab = symbolTable->elems[i];
+    if(lab->cat != CAT_LABEL) {
+        printf("Varaivel que nao eh rotulo sendo usada como rotulo.\n");
+        exit(-1);
+    }
+
+    int n_local_var = 0, j = getLastSubroutineST(symbolTable);
+    if(j == -1) {
+        // We jumped into main. If ENRT is wrong, this would be a good place to be wrong.
+        n_local_var = main_local_vars;
+    } else {
+        Element subroutine = symbolTable->elems[j];
+        if(subroutine->cat == CAT_FUNCTION) {
+            n_local_var = subroutine->value->function->n_params;
+        } else if(subroutine->cat == CAT_PROCEDURE) {
+            n_local_var = subroutine->value->procedure->n_params;
+        }
+    }
+
+    sprintf(enrt, "ENRT %d,%d", lexLevel, n_local_var);
+    // Gera r003: ENRT 1,1
+    geraCodigo(lab->value->label->label, enrt);
+} | ;
 
 comando_sem_rotulo: atrib_ou_csr | comando_repetitivo | comando_condicional | impressao | leitura | desvio_incondicional;
 
