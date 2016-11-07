@@ -86,7 +86,8 @@ parte_declaracao: {
 } parte_declara {
     char amem[10];
     sprintf(amem, "AMEM %d", offset);
-    geraCodigo(NULL, amem);
+    if(offset > 0) // Jogando sujeira embaixo do tapete. Porque ele chega aqui com 0?
+        geraCodigo(NULL, amem);
     if(lexLevel == 0) {
         // Estamos no main. Guarda em main_local_vars o numero de variaveis locais.
         // Isso vai ser util SOMENTE pra gerar ENRT.
@@ -116,16 +117,16 @@ lista_id_var: lista_id_var VIRGULA IDENT {
 
 lista_idents: lista_idents VIRGULA IDENT | IDENT;
 
-parte_declara_label: LABEL declara_labels;
+parte_declara_label: LABEL declara_labels PONTO_E_VIRGULA;
 
 // Perigo: Variavel cat->label existe, mas eh uma Struct Label. O char* eh cat->label->label!!!
-declara_labels: declara_labels VIRGULA IDENT {
+declara_labels: declara_labels VIRGULA NUMERO {
     Cat cat = createLabel();
     cat->label->offset = offset;
     cat->label->label = nextLabel();
     insertST(symbolTable, token, lexLevel, CAT_LABEL, cat);
     ++offset;
-} | IDENT {
+} | NUMERO {
     Cat cat = createLabel();
     cat->label->offset = offset;
     cat->label->label = nextLabel();
@@ -282,12 +283,13 @@ comandos: comandos PONTO_E_VIRGULA comando | comando;
 comando: rotulo comando_sem_rotulo;
 
 /* Ou 'numero DOIS_PONTOS' ou nada. Suponho que, se nao tem nada, eu deixo em branco soh. */
-rotulo: NUMERO DOIS_PONTOS {
+rotulo: NUMERO {
     /* Aqui entrou um label. Insere ENRT lex_level_atual, n_var_locais. Acredito que tambem tenho que inserir o r003:. */
     char enrt[20];
     /* Pega dados do Rotulo. */
     int i;
     if((i = searchST(symbolTable, token)) < 0) {
+        printf("(rotulo - %s)\n", token);
         eSymbolNotFound(token);
     }
     Element lab = symbolTable->elems[i];
@@ -312,7 +314,7 @@ rotulo: NUMERO DOIS_PONTOS {
     sprintf(enrt, "ENRT %d,%d", lexLevel, n_local_var);
     // Gera r003: ENRT 1,1
     geraCodigo(lab->value->label->label, enrt);
-} | ;
+} DOIS_PONTOS | ;
 
 comando_sem_rotulo: atrib_ou_csr | comando_repetitivo | comando_condicional | impressao | leitura | desvio_incondicional;
 
@@ -364,7 +366,7 @@ le: IDENT {
     geraCodigo(NULL, ar);
 };
 
-desvio_incondicional: GOTO IDENT {
+desvio_incondicional: GOTO NUMERO {
     int i;
     if((i = searchST(symbolTable, token)) < 0) {
         eSymbolNotFound(token);

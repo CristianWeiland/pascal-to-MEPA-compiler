@@ -1,11 +1,17 @@
      INPP
      AMEM 3
+     DSVS r000
+r001: ENPR 1
+     DSVR r002,0,1
+     RTPR 1,1
+r000: NADA
      CRCT 2
      ARMZ 0,0
-     DSVR r000,0,0
+     CRVL 0,0
+     CHPR r001,0
      CRCT 5
      ARMZ 0,1
-r000: ENRT 0,3
+r002: ENRT 0,3
      CRVL 0,0
      IMPR
      CRVL 0,1
