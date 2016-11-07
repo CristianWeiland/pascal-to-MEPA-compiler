@@ -64,6 +64,19 @@ int getLastSubroutineST(ST st) {
     return -1;
 }
 
+int getSubroutineLexLevel(ST st, int lexLevel) {
+    int i;
+    Element elem;
+    for(i = st->head; i >= 0; --i) {
+        elem = st->elems[i];
+        if((elem->cat == CAT_FUNCTION || elem->cat == CAT_PROCEDURE) && elem->lexLevel <= lexLevel) {
+            //printf("Retornando %d...\n", i);
+            return i;
+        }
+    }
+    return -1;
+}
+
 int removeLocalSymb(ST st, int lexLevel) {
     int removed = 0;
     int i = st->head;

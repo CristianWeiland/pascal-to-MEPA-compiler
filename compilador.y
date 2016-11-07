@@ -294,7 +294,9 @@ rotulo: NUMERO {
         exit(-1);
     }
 
-    int n_local_var = 0, j = getLastSubroutineST(symbolTable);
+    int n_local_var = 0;
+    //int j = getLastSubroutineST(symbolTable); // Isso nao ta funcionando.
+    int j = getSubroutineLexLevel(symbolTable, lab->lexLevel);
     // Provavelmente tem um erro aqui. Ta achando uma funcao que nao deveria existir (ou deveria?)
     if(j == -1) {
         // We jumped into main. If ENRT is wrong, this would be a good place to be wrong.

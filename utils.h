@@ -79,6 +79,7 @@ enum CATEGORIES { CAT_SIMPLEVAR, CAT_PROCEDURE, CAT_FORMALPARAM, CAT_FUNCTION, C
 
 int searchST(ST st, const char *symb);
 int getLastSubroutineST(ST st);
+int getSubroutineLexLevel(ST st, int lexLevel);
 int pushST(ST st, Element elem);
 int insertST(ST st, const char* symb, int lexlev, int cat, Cat value);
 int removeLocalSymb(ST st, int lexLevel);
