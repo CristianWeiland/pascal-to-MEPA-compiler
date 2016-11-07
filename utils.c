@@ -57,6 +57,7 @@ int getLastSubroutineST(ST st) {
     for(i = st->head; i >= 0; --i) {
         elem = st->elems[i];
         if(elem->cat == CAT_FUNCTION || elem->cat == CAT_PROCEDURE) {
+            //printf("Retornando %d...\n", i);
             return i;
         }
     }
@@ -106,7 +107,7 @@ int fixOffsetST(ST st) {
 int gotoCleanSymbolTable(ST st, int destll, int curll) {
     // Parametros: Symbol Table, Destiny Lex Level, Current Lex Level.
     if(destll <= curll) {
-        puts("Entao por que chamou, infeliz?");
+        //puts("Entao por que chamou, infeliz?");
         return -1;
     }
     int i = st->head;

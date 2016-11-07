@@ -122,16 +122,12 @@ parte_declara_label: LABEL declara_labels PONTO_E_VIRGULA;
 // Perigo: Variavel cat->label existe, mas eh uma Struct Label. O char* eh cat->label->label!!!
 declara_labels: declara_labels VIRGULA NUMERO {
     Cat cat = createLabel();
-    cat->label->offset = offset;
     cat->label->label = nextLabel();
     insertST(symbolTable, token, lexLevel, CAT_LABEL, cat);
-    ++offset;
 } | NUMERO {
     Cat cat = createLabel();
-    cat->label->offset = offset;
     cat->label->label = nextLabel();
     insertST(symbolTable, token, lexLevel, CAT_LABEL, cat);
-    ++offset;
 };
 
 parte_declara_subrotina: parte_declara_subrotina parte_declara_procedimento | parte_declara_subrotina parte_declara_funcao | ;
@@ -299,6 +295,7 @@ rotulo: NUMERO {
     }
 
     int n_local_var = 0, j = getLastSubroutineST(symbolTable);
+    // Provavelmente tem um erro aqui. Ta achando uma funcao que nao deveria existir (ou deveria?)
     if(j == -1) {
         // We jumped into main. If ENRT is wrong, this would be a good place to be wrong.
         n_local_var = main_local_vars;

@@ -27,7 +27,6 @@ struct FormalParam {
 };
 
 struct Label {
-    int offset;
     char *label;
 };
 
