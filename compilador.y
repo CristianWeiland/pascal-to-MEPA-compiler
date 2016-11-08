@@ -293,6 +293,10 @@ rotulo: NUMERO {
         printf("Varaivel que nao eh rotulo sendo usada como rotulo.\n");
         exit(-1);
     }
+    if(lab->lexlevel != lexLevel) {
+        printf("Tentou inserir label em nivel lexico diferente do que ela foi declarada.\n");
+        exit(-2);
+    }
 
     int n_local_var = 0;
     //int j = getLastSubroutineST(symbolTable); // Isso nao ta funcionando.
