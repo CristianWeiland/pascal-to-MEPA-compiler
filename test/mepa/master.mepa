@@ -44,4 +44,37 @@ r002: ENRT 1,1
      CRVI 1,-4
      CRVL 0,0
      CMME
-     DSVF r10
+     DSVF r010
+     DSVR r002,1,1
+r010: NADA
+r003: ENRT 1,1
+     CRVL 0,0
+     CRCT 1
+     SUBT
+     ARMZ 0,0
+     DMEM 1
+     RTPR 1,1
+r000: NADA
+     DSVS r011
+r012: NADA
+     ENPR 1
+     DSVS r013
+r014: ENPR 2
+     AMEM 1
+     LEIT
+     ARMZ 2,0
+     CREN 2,0
+     CHPR r001,2
+     CRVL 2,0
+     IMPR
+     DMEM 1
+     RTPR 2,0
+r013: NADA
+     CHPR r014,1
+     RTPR 1,0
+r011: NADA
+     LEIT
+     ARMZ 0,0
+     CHPR r012,0
+     DMEM 1
+     PARA
