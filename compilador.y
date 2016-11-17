@@ -92,6 +92,16 @@ parte_declaracao: {
         // Estamos no main. Guarda em main_local_vars o numero de variaveis locais.
         // Isso vai ser util SOMENTE pra gerar ENRT.
         main_local_vars = offset;
+    } else {
+        // Estamos em alguma funcao. Pega ela e seta o numero de variaveis locais.
+        Element e = (Element) pop(procSt);
+        if(e->cat == CAT_FUNCTION) {
+            e->value->function->n_local_vars = offset;
+        } else if(e->cat == CAT_PROCEDURE) {
+            e->value->procedure->n_local_vars = offset;
+        }
+        // Restaura a pilha.
+        push(procSt, e);
     }
 };
 
@@ -308,9 +318,9 @@ rotulo: NUMERO {
     } else {
         Element subroutine = symbolTable->elems[j];
         if(subroutine->cat == CAT_FUNCTION) {
-            n_local_var = subroutine->value->function->n_params;
+            n_local_var = subroutine->value->function->n_local_vars;
         } else if(subroutine->cat == CAT_PROCEDURE) {
-            n_local_var = subroutine->value->procedure->n_params;
+            n_local_var = subroutine->value->procedure->n_local_vars;
         }
     }
 
@@ -475,6 +485,8 @@ param_real: {
     ++(e->n_params_reais);
     ++n_params_reais;
     FormalParam fp = symbolTable->elems[e->fp_index]->value->formalParam;
+    debug(symbolTable);
+    printf ("(%s %d, %d)\n", e->function->symbol, e->fp_index, fp->referencia);
     e->fp_referencia = fp->referencia;
     push(ExprR, e);
 
@@ -586,7 +598,7 @@ f: NUMERO {
 
     char cr[13], mod[5];
     ExprRef e = pop(ExprR);
-    Element elem = e->function;
+    Element elem = e->function; // É o elemento inserido na pilha (pode ser uma variavel)
 
     if(elem->cat == CAT_FUNCTION) {
         char *label;

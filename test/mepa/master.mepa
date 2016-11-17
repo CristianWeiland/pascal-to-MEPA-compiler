@@ -8,7 +8,7 @@ r005: ENPR 2
      CRVL 2,-4
      CRCT 0
      CMME
-     DSVF R006
+     DSVF r006
      DSVR r003,1,2
      DSVS r007
 r006: NADA
@@ -24,7 +24,7 @@ r008: NADA
      CRVL 2,-4
      CRCT 2
      SUBT
-     CHPR R005,2
+     CHPR r005,2
      CRVL 2,-4
      MULT
      CRCT 1
@@ -50,14 +50,13 @@ r010: NADA
 r003: ENRT 1,1
      CRVL 0,0
      CRCT 1
-     SUBT
+     SOMA
      ARMZ 0,0
      DMEM 1
      RTPR 1,1
 r000: NADA
      DSVS r011
-r012: NADA
-     ENPR 1
+r012: ENPR 1
      DSVS r013
 r014: ENPR 2
      AMEM 1

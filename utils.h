@@ -11,12 +11,12 @@ struct SimpleVar {
 };
 
 struct Procedure {
-    int n_params;
+    int n_params, n_local_vars;
     char *label;
 };
 
 struct Function {
-    int n_params;
+    int n_params, n_local_vars;
     char *label;
     int offset;
 };

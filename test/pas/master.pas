@@ -26,7 +26,7 @@ program ex12(input, output);
             begin
                 read(y);
                 p(y);
-                write(y);
+                write(y)
             end;
         begin
             q
