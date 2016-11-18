@@ -22,6 +22,7 @@ char Operacao[5];
 
 const char* type_integer = "int";
 const char* type_boolean = "bool";
+const char* type_undefined = "";
 
 /* Coisas de procedures */
 Element procedure, function;
@@ -255,30 +256,46 @@ lista_args_copia: lista_args_copia VIRGULA IDENT {
     // Obs: Lista_args ainda nao aceita passagem por referencia, só por cópia.
     // Achei algo tipo "a, b: integer", aqui eu to tratando o 'b', por exemplo.
     // Token == 'b'.
-    if(is_function)
+    if(is_function) {
+        func->params[func->n_params] = createFPReference(type_undefined, 0);
         func->n_params++;
-    else
+    }
+    else {
+        proc->params[proc->n_params] = createFPReference(type_undefined, 0);
         proc->n_params++;
+    }
     cria_arg(symbolTable, token, lexLevel, 0);
 } | IDENT {
-    if(is_function)
+    if(is_function) {
+        func->params[func->n_params] = createFPReference(type_undefined, 0);
         func->n_params++;
-    else
+    }
+    else {
+        proc->params[proc->n_params] = createFPReference(type_undefined, 0);
         proc->n_params++;
+    }
     cria_arg(symbolTable, token, lexLevel, 0);
 };
 
 lista_args_ref: lista_args_ref VIRGULA IDENT {
-    if(is_function)
+    if(is_function) {
+        func->params[func->n_params] = createFPReference(type_undefined, 1);
         func->n_params++;
-    else
+    }
+    else {
+        proc->params[proc->n_params] = createFPReference(type_undefined, 1);
         proc->n_params++;
+    }
     cria_arg(symbolTable, token, lexLevel, 1);
 } | IDENT {
-    if(is_function)
+    if(is_function) {
+        func->params[func->n_params] = createFPReference(type_undefined, 1);
         func->n_params++;
-    else
+    }
+    else {
+        proc->params[proc->n_params] = createFPReference(type_undefined, 1);
         proc->n_params++;
+    }
     cria_arg(symbolTable, token, lexLevel, 1);
 };
 
@@ -484,9 +501,14 @@ param_real: {
     ++(e->fp_index);
     ++(e->n_params_reais);
     ++n_params_reais;
-    FormalParam fp = symbolTable->elems[e->fp_index]->value->formalParam;
-    debug(symbolTable);
-    printf ("(%s %d, %d)\n", e->function->symbol, e->fp_index, fp->referencia);
+    struct FPReference *fp;
+    //printf("(%d)\n", e->fp_index);
+    if(e->function->cat == CAT_PROCEDURE) {
+        fp = &(e->function->value->procedure->params[e->fp_index]);
+    }
+    else {
+        fp = &(e->function->value->function->params[e->fp_index]);
+    }
     e->fp_referencia = fp->referencia;
     push(ExprR, e);
 

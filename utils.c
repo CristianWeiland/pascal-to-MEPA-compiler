@@ -204,10 +204,17 @@ Cat createLabel() {
     return lb;
 }
 
+struct FPReference createFPReference(const char* type, int reference) {
+    struct FPReference r;
+    r.referencia = reference;
+    r.type = type;
+    return r;
+}
+
 ExprRef createExprRef(int r, int index, Element f) {
     ExprRef er = (ExprRef) malloc(sizeof(struct ExprRef));
     er->fp_referencia = r;
-    er->fp_index = index;
+    er->fp_index = -1;
     er->function = f;
     er->n_params_reais = 0;
     er->expr_referencia = 1;

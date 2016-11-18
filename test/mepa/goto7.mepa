@@ -3,9 +3,10 @@
      DSVS r001
 r002: ENPR 1
      DSVS r004
-     RTPR 2,1
 r005: ENPR 2
      DSVR r003,1,2
+     RTPR 2,1
+r004: NADA
      CRCT 1
      CHPR r005,1
 r003: ENRT 1,0

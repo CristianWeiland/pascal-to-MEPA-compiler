@@ -11,7 +11,7 @@ program cw(input, output);
             f3 := f2 + f1;
             f1 := f2;
             f2 := f3;
-            k := k + 1;
+            k := k + 1
         end;
-        write(n,k);
+        write(n,k)
     end.

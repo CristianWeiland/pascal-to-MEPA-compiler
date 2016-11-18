@@ -5,21 +5,12 @@
 #include <math.h>
 
 #define MAX_SYMB_LEN 10
+#define MAX_PARAMS_LEN 10
 
 struct SimpleVar {
     int offset;
 };
 
-struct Procedure {
-    int n_params, n_local_vars;
-    char *label;
-};
-
-struct Function {
-    int n_params, n_local_vars;
-    char *label;
-    int offset;
-};
 
 struct FormalParam {
     int offset;
@@ -28,6 +19,24 @@ struct FormalParam {
 
 struct Label {
     char *label;
+};
+
+struct FPReference {
+    int referencia;
+    const char* type;
+};
+
+struct Procedure {
+    int n_params, n_local_vars;
+    char *label;
+    struct FPReference params[MAX_PARAMS_LEN];
+};
+
+struct Function {
+    int n_params, n_local_vars;
+    char *label;
+    struct FPReference params[MAX_PARAMS_LEN];
+    int offset;
 };
 
 typedef struct Function* Function;
@@ -96,6 +105,7 @@ Cat createProcedure();
 Cat createFunction();
 Cat createFormalParam();
 Cat createLabel();
+struct FPReference createFPReference(const char* type, int reference);
 
 
 ExprRef createExprRef(int r, int index, Element f);
