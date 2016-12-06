@@ -47,9 +47,6 @@ Cat category;
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
 
-%nonassoc LOWER_THAN_ATRIB
-%nonassoc ATRIB
-
 %%
 
 programa: {
@@ -561,7 +558,7 @@ expr: expr MAIS t {
     push(ExprE, (void*)type_integer);
     exprSetReference(ExprR, 0);
 } | expr OR t {
-    geraCodigo(NULL, "CONJ");
+    geraCodigo(NULL, "DISJ");
     checa_tipo(ExprT, ExprE, type_boolean);
 
     push(ExprE, (void*)type_boolean);
@@ -582,7 +579,7 @@ t: t ASTERISCO f {
     push(ExprT, (void*)type_integer);
     exprSetReference(ExprR, 0);
 } | t AND f {
-    geraCodigo(NULL, "DISJ");
+    geraCodigo(NULL, "CONJ");
     checa_tipo(ExprF, ExprT, type_boolean);
     push(ExprT, (void*)type_boolean);
     exprSetReference(ExprR, 0);
