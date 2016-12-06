@@ -106,9 +106,9 @@ parte_declaracao: {
     }
 };
 
-parte_declara: parte_declara parte_declara_vars | parte_declara parte_declara_label | ;
+parte_declara: parte_declara_label parte_declara_vars;
 
-parte_declara_vars: VAR declara_vars;
+parte_declara_vars: VAR declara_vars | ;
 
 declara_vars: declara_vars declara_var | declara_var;
 
@@ -128,7 +128,7 @@ lista_id_var: lista_id_var VIRGULA IDENT {
 
 lista_idents: lista_idents VIRGULA IDENT | IDENT;
 
-parte_declara_label: LABEL declara_labels PONTO_E_VIRGULA;
+parte_declara_label: LABEL declara_labels PONTO_E_VIRGULA | ;
 
 // Perigo: Variavel cat->label existe, mas eh uma Struct Label. O char* eh cat->label->label!!!
 declara_labels: declara_labels VIRGULA NUMERO {

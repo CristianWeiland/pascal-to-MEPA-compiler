@@ -1,7 +1,7 @@
 (* Simple GoTo test *)
 program p(input, output);
-var a, b: integer;
 label 100;
+var a, b: integer;
 begin
     a := 2;
     goto 100;

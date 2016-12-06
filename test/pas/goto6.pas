@@ -1,7 +1,7 @@
 (* GoTo de dentro de proc pra fora. *)
 program p(input, output);
-var a, b: integer;
 label 100;
+var a, b: integer;
 procedure pr(x: integer);
 begin
     goto 100

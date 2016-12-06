@@ -1,8 +1,7 @@
 (* Label declaration test. *)
 program p(input, output);
+label 100,200,300;
 var a, b: integer;
-label 100,200;
-label 300;
 begin
     a := 2;
     b := 5
