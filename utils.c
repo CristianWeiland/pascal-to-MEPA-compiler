@@ -51,6 +51,32 @@ int searchST(ST st, const char *symb) {
     return -1;
 }
 
+int getLastSubroutineST(ST st) {
+    int i;
+    Element elem;
+    for(i = st->head; i >= 0; --i) {
+        elem = st->elems[i];
+        if(elem->cat == CAT_FUNCTION || elem->cat == CAT_PROCEDURE) {
+            //printf("Retornando %d...\n", i);
+            return i;
+        }
+    }
+    return -1;
+}
+
+int getSubroutineLexLevel(ST st, int lexLevel) {
+    int i;
+    Element elem;
+    for(i = st->head; i >= 0; --i) {
+        elem = st->elems[i];
+        if((elem->cat == CAT_FUNCTION || elem->cat == CAT_PROCEDURE) && elem->lexLevel <= lexLevel) {
+            //printf("Retornando %d...\n", i);
+            return i;
+        }
+    }
+    return -1;
+}
+
 int removeLocalSymb(ST st, int lexLevel) {
     int removed = 0;
     int i = st->head;
@@ -70,10 +96,10 @@ int removeLocalSymb(ST st, int lexLevel) {
     return removed;
 }
 
-void fixOffsetST(ST st) {
-    //debug(st);
+int fixOffsetST(ST st) {
+    // Retorna o proximo offset (usado para functions).
     // Enquanto o proximo elemento da ST nao for uma procedure/function, ignora.
-    int i = st->head; // To acreditando que st->head aponta pro ultimo elemento existente.
+    int i = st->head;
     int offset = -4;
     Element elem = st->elems[i];
     while( elem->cat != CAT_PROCEDURE && elem->cat != CAT_FUNCTION ) {
@@ -88,33 +114,22 @@ void fixOffsetST(ST st) {
         --i;
         elem = st->elems[i];
     }
-/*    Element elem = st->elems[i];
-    while( elem->cat != CAT_PROCEDURE && elem->cat != CAT_FUNCTION ) {
+    return offset;
+}
+
+int gotoCleanSymbolTable(ST st, int destll, int curll) {
+    // Parametros: Symbol Table, Destiny Lex Level, Current Lex Level.
+    if(destll <= curll) {
+        //puts("Entao por que chamou, infeliz?");
+        return -1;
+    }
+    int i = st->head;
+    Element elem = st->elems[i];
+    while( elem->lexLevel > destll && i > 0 ) {
         --i;
         elem = st->elems[i];
     }
-    // Se eu pegar st->elems[i] agora ele vai conter a procedure. Quero o proximo elemento.
-    ++i;
-
-    int offset = -4;
-
-    printf("Achei i = %d e head = %d.\n", i, st->head);
-
-    while( i <= st->head ) {
-        if(elem->cat != CAT_FORMALPARAM) {
-            puts("Deveria ser formalParam.");
-            ++i;
-            continue;
-        }
-        elem = st->elems[i];
-        elem->value->formalParam->offset = offset;
-        --offset;
-        // Neste momento, elem contém o primeiro parametro (se contiver algum).
-
-        ++i;
-    }
-*/
-    //debug(st);
+    return i;
 }
 
 void debug(ST st) {
@@ -170,10 +185,48 @@ Cat createProcedure() {
     return proc;
 }
 
+Cat createFunction() {
+    Cat func = (Cat) malloc(sizeof(union Cat));
+    func->function = malloc(sizeof(struct Function));
+    func->function->label = (char *) malloc(sizeof(char) * MAX_SYMB_LEN);
+    return func;
+}
+
 Cat createFormalParam() {
     Cat fp = (Cat) malloc(sizeof(union Cat));
     fp->formalParam = malloc(sizeof(struct FormalParam));
     return fp;
+}
+
+Cat createLabel() {
+    Cat lb = (Cat) malloc(sizeof(union Cat));
+    lb->formalParam = malloc(sizeof(struct Label));
+    return lb;
+}
+
+struct FPReference createFPReference(const char* type, int reference) {
+    struct FPReference r;
+    r.referencia = reference;
+    r.type = type;
+    return r;
+}
+
+ExprRef createExprRef(int r, int index, Element f) {
+    ExprRef er = (ExprRef) malloc(sizeof(struct ExprRef));
+    er->fp_referencia = r;
+    er->fp_index = -1;
+    er->function = f;
+    er->n_params_reais = 0;
+    er->expr_referencia = 1;
+    return er;
+}
+
+void exprSetReference(Stack s, const int value) {
+    ExprRef e = pop(s);
+    if(e != NULL) {
+        e->expr_referencia = value;
+        push(s, e);
+    }
 }
 
 char* nextLabel() {
@@ -207,6 +260,8 @@ void push(Stack stack, void *elem) {
 }
 
 void* pop(Stack stack) {
+    if(stack->head == -1)
+        return NULL;
     --(stack->head);
     return stack->elems[stack->head+1];
 }

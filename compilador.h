@@ -26,13 +26,13 @@ typedef enum simbolos {
   simb_while, simb_do, simb_or, simb_div, simb_and, simb_not,
   simb_integer, simb_mais, simb_menos, simb_asterisco, simb_barra,
   simb_igual, simb_maior, simb_menor, simb_maior_igual,
-  simb_menor_igual, simb_desigual
+  simb_menor_igual, simb_desigual, simb_write, simb_read
 
 } simbolos;
 
 void yyerror (char* msg);
 void checa_tipo(Stack F, Stack T, const char* expected);
-void cria_arg(Procedure *proc, ST st, char *token, int lexLevel, int ref);
+void cria_arg(ST st, char *token, int lexLevel, int ref);
 
 /* -------------------------------------------------------------------
  * variáveis globais

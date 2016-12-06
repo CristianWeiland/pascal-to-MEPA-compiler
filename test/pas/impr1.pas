@@ -1,4 +1,4 @@
-(* Teste de Atribuição *)
+(* Imprime uma variavel simples *)
 program p (input, output);
 var x, y, z, o , p : integer;
     coisa : integer;
@@ -7,5 +7,6 @@ begin
     y := y;
     y := x;
     coisa := 5;
-    z := p
+    z := p;
+    write(x)
 end.

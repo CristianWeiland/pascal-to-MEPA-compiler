@@ -106,8 +106,6 @@ end { simbolo = simb_end;
         return T_END;
  }
 
-
-
 goto {
     simbolo = simb_goto;
     strncpy (token, yytext, TAM_TOKEN);
@@ -185,7 +183,19 @@ integer {
     return INTEGER;
 }
 
+write {
+    simbolo = simb_write;
+    strncpy (token, yytext, TAM_TOKEN);
+    IMPRIME(" write ");
+    return WRITE;
+}
 
+read {
+    simbolo = simb_read;
+    strncpy (token, yytext, TAM_TOKEN);
+    IMPRIME(" read ");
+    return READ;
+}
 
 \:\= { simbolo = simb_atribuicao;
           strncpy (token, yytext, TAM_TOKEN);
