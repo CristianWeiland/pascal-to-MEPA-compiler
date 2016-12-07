@@ -156,14 +156,11 @@ parte_declara_procedimento: PROCEDURE IDENT {
     // r01: ENPR 1 --> Isso ja gera o rotulo pra entrar no procedimento!
     geraCodigo(label_proc, enpr);
 
-    //procedure = (Element) malloc(sizeof(struct Element));
     procedure = createElement();
     procedure->cat = CAT_PROCEDURE;
     procedure->lexLevel = lexLevel;
-    //proc = (Procedure) malloc(sizeof(struct Procedure));
     category = createProcedure();
     proc = category->procedure;
-    //proc = createProcedure();
     proc->n_params = 0;
     procedure->value->procedure = proc;
 
@@ -177,13 +174,10 @@ parte_declara_procedimento: PROCEDURE IDENT {
 
     is_function = 0;
 } parte_params_formais PONTO_E_VIRGULA bloco PONTO_E_VIRGULA {
-    // REMOVE TUDAS PIZZARIA DA TABELA DE SIMBOLOS E CARREGA O PROC CERTO
     char rtpr[12];
     procedure = (Element) pop(procSt);
     sprintf(rtpr, "RTPR %d,%d", procedure->lexLevel, procedure->value->procedure->n_params);
     geraCodigo(NULL, rtpr);
-    // PRECISA TIRAR DA TABELA DE SIMBOLOS AS VARIAVEIS, PROCEDURES E FUNCTIONS LOCAIS
-    // limpaST(lexLevel);
     --lexLevel;
     // Cria rotulo de saida.
     geraCodigo(pop(labels), "NADA");
@@ -225,13 +219,10 @@ parte_declara_funcao: FUNCTION IDENT {
 } parte_params_formais {
     function->value->function->offset = offset;
 } DOIS_PONTOS tipo PONTO_E_VIRGULA bloco PONTO_E_VIRGULA {
-    // REMOVE TUDAS PIZZARIA DA TABELA DE SIMBOLOS E CARREGA O PROC CERTO
     char rtpr[12];
     function = (Element) pop(procSt);
     sprintf(rtpr, "RTPR %d,%d", function->lexLevel, function->value->function->n_params);
     geraCodigo(NULL, rtpr);
-    // PRECISA TIRAR DA TABELA DE SIMBOLOS AS VARIAVEIS, PROCEDURES E FUNCTIONS LOCAIS
-    // limpaST(lexLevel);
     --lexLevel;
     // Cria rotulo de saida.
     geraCodigo(pop(labels), "NADA");
@@ -323,11 +314,9 @@ rotulo: NUMERO {
     }
 
     int n_local_var = 0;
-    //int j = getLastSubroutineST(symbolTable); // Isso nao ta funcionando.
     int j = getSubroutineLexLevel(symbolTable, lab->lexLevel);
-    // Provavelmente tem um erro aqui. Ta achando uma funcao que nao deveria existir (ou deveria?)
     if(j == -1) {
-        // We jumped into main. If ENRT is wrong, this would be a good place to be wrong.
+        // We jumped into main.
         n_local_var = main_local_vars;
     } else {
         Element subroutine = symbolTable->elems[j];
@@ -403,7 +392,6 @@ desvio_incondicional: GOTO NUMERO {
     if(elem->cat != CAT_LABEL) {
         puts("Tentando dar goto para algo que nao eh uma label.");
     } else {
-        // Essa proxima linha de codigo tem uma BOA CHANCE DE DAR ERRADA!!
         //                             Rotulo Dest                LexLevel Dest,  LexLevel Atual
         sprintf(dsvr, "DSVR %s,%d,%d", elem->value->label->label, elem->lexLevel, lexLevel);
         if(elem->lexLevel != lexLevel) {
@@ -422,10 +410,6 @@ atrib_ou_csr: IDENT {
     atribuido = symbolTable->elems[i];
     ExprRef e = createExprRef(0, i, atribuido);
     push(ExprR, e);
-    /*if(procedure->cat != CAT_PROCEDURE && procedure->cat != CAT_FUNCTION) {
-        yyerror("Chamada de subrotina para um identificador que nao eh funcao nem procedimento.");
-        exit(1);
-    }*/
 } atrib_ou_csr2 {
     pop(ExprR);
 };
@@ -434,7 +418,6 @@ atrib_ou_csr2: atribuicao | chamada_subrotina;
 
 atribuicao: ATRIBUICAO expressao {
     pop(ExprE);
-    //printf("Atribuicao token %s\n", token);
     char armz[13]; // Da ateh 3 digitos de inteiros
     if(atribuido->cat == CAT_SIMPLEVAR)
         sprintf(armz, "ARMZ %d,%d", atribuido->lexLevel, atribuido->value->simpleVar->offset);
@@ -447,7 +430,6 @@ atribuicao: ATRIBUICAO expressao {
     else
         puts("Tentando atribuir pra algo que nao eh FormalParam nem SimpleVar...");
     geraCodigo(NULL, armz);
-    // Verifica se os tipos sao iguais. NAO FOI FEITO AINDA.
 };
 
 chamada_subrotina: {
@@ -463,7 +445,6 @@ chamada_subrotina: {
     push(ExprR, e);
 } params_reais {
     // Checa se o numero de parametros confere.
-    //printf("Entrei na subrotina com o token %s.\n", token);
     ExprRef e = pop(ExprR);
     Element procedure = (Element) e->function;
     int n_params = -1;
@@ -499,7 +480,6 @@ param_real: {
     ++(e->n_params_reais);
     ++n_params_reais;
     struct FPReference *fp;
-    //printf("(%d)\n", e->fp_index);
     if(e->function->cat == CAT_PROCEDURE) {
         fp = &(e->function->value->procedure->params[e->fp_index]);
     }
@@ -518,8 +498,6 @@ param_real: {
         imprimeErro("Erro na verificacao de tipos. Passagem por referencia precisa ter variavel como parametro");
     }
     push(ExprR, e);
-
-    // Falta ainda ver como passar direito (valor ou referencia).
 };
 
 expressao: expr relacao expr {
