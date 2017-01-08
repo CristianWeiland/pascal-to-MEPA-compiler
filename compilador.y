@@ -1,7 +1,6 @@
 
-// Testar se funciona corretamente o empilhamento de parâmetros
-// passados por valor ou por referência.
 
+// Linha adicionada no commit. Outros membros podem ver ela facilmente.
 
 %{
 #include <stdio.h>
